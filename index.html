@@ -853,38 +853,84 @@ function norm(s) {
   return (s||'').replace(/\s+/g,'').replace(/[×∙]/g,'*').replace(/÷/g,'/').replace(/²/g,'^2').replace(/³/g,'^3').toLowerCase();
 }
 
-const KEYS = [
-  ['x','^','√(','a/b','( )'],
-  ['7','8','9','÷','π'],
-  ['4','5','6','×','%'],
-  ['1','2','3','−','^'],
+const KEYS_NUM = [
+  ['x','y','^','√(','a/b','( )'],
+  ['7','8','9','÷','π','e'],
+  ['4','5','6','×','%','±'],
+  ['1','2','3','−','²','³'],
   ['0','.','⌫','+','='],
 ];
 
+const KEYS_MAT = [
+  ['∫','lim','ln','log','Σ','Δ'],
+  ['sin','cos','tan','∞','≤','≥'],
+  ['d/dx','∂','θ','α','β','≠'],
+  ['ⁿ√','|x|','n!','→','∈','∀'],
+  ['∪','∩','⊂','≈','⌫','='],
+];
+
 function CalcKeypad({ val, onChange, onDone }) {
+  const [tab, setTab] = useState('num');
+  const KEYS = tab === 'num' ? KEYS_NUM : KEYS_MAT;
+
+  const insertText = (t) => onChange(val + t);
+
   const handleKey = (k) => {
     if (k==='⌫') { onChange(val.slice(0,-1)); return; }
     if (k==='=') { onDone(); return; }
-    if (k==='a/b') { onChange(val+'/'); return; }
+    if (k==='a/b') { insertText('/'); return; }
     if (k==='( )') { onChange(val+(val.slice(-1)==='(' ? ')' : '(')); return; }
-    if (k==='π') { onChange(val+'π'); return; }
-    onChange(val+k);
+    if (k==='±') { insertText('(-'); return; }
+    if (k==='²') { insertText('^2'); return; }
+    if (k==='³') { insertText('^3'); return; }
+    if (k==='d/dx') { insertText('d/dx '); return; }
+    if (k==='∂') { insertText('∂'); return; }
+    if (k==='ⁿ√') { insertText('ⁿ√('); return; }
+    if (k==='|x|') { insertText('|'); return; }
+    if (k==='n!') { insertText('!'); return; }
+    if (k==='lim') { insertText('lim '); return; }
+    if (k==='ln') { insertText('ln('); return; }
+    if (k==='log') { insertText('log('); return; }
+    if (k==='sin') { insertText('sin('); return; }
+    if (k==='cos') { insertText('cos('); return; }
+    if (k==='tan') { insertText('tan('); return; }
+    insertText(k);
   };
+
+  const isOp = (k) => ['÷','×','−','+','^','±','²','³'].includes(k);
+  const isMathOp = (k) => ['≤','≥','≠','→','∈','∀','≈','∪','∩','⊂'].includes(k);
+
   const keyStyle = (k) => ({
-    flex: 1, height: 44, border: 'none', cursor: 'pointer', borderRadius: 9, fontFamily: 'Inter, sans-serif',
-    fontSize: k.length > 1 ? 13 : 17, fontWeight: 600, transition: 'background .1s',
-    background: ['÷','×','−','+','^'].includes(k) ? 'color-mix(in srgb, var(--accent) 18%, var(--surface))' : k==='=' ? 'var(--accent)' : k==='⌫' ? 'var(--surface-2)' : 'var(--surface)',
+    flex: k === '=' && tab === 'num' ? 2 : 1, height: 44, border: 'none', cursor: 'pointer', borderRadius: 9,
+    fontFamily: ['sin','cos','tan','lim','ln','log','d/dx','ⁿ√','|x|','n!'].includes(k) ? 'Inter, sans-serif' : 'inherit',
+    fontSize: k.length > 2 ? 12 : k.length > 1 ? 13 : 17, fontWeight: 600, transition: 'background .1s',
+    background: k==='=' ? 'var(--accent)' : k==='⌫' ? 'var(--surface-2)' : isOp(k) || isMathOp(k) ? 'color-mix(in srgb, var(--accent) 18%, var(--surface))' : 'var(--surface)',
     color: k==='=' ? '#fff' : 'var(--text)',
+    letterSpacing: k.length > 2 ? '-0.02em' : 'normal',
   });
+
+  const tabBtn = (id, label) => (
+    <button onClick={() => setTab(id)} style={{
+      flex: 1, height: 32, border: 'none', cursor: 'pointer', borderRadius: 8,
+      fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em',
+      background: tab === id ? 'color-mix(in srgb, var(--accent) 20%, var(--surface))' : 'transparent',
+      color: tab === id ? 'var(--accent)' : 'var(--text-muted)',
+      transition: 'background .15s, color .15s',
+    }}>{label}</button>
+  );
+
   return (
-    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'var(--bg)', borderTop: '1px solid var(--border)', padding: '10px 12px 18px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-        <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Calculadora</span>
+    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'var(--bg)', borderTop: '1px solid var(--border)', padding: '8px 12px 18px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+        <div style={{ display: 'flex', gap: 4 }}>
+          {tabBtn('num', '123')}
+          {tabBtn('mat', 'f(x)')}
+        </div>
         <button onClick={onDone} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter', fontSize: 13.5, fontWeight: 700, padding: 0 }}>Pronto ✓</button>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {KEYS.map((row, i) => (
-          <div key={i} style={{ display: 'flex', gap: 7 }}>
+          <div key={i} style={{ display: 'flex', gap: 6 }}>
             {row.map((k) => <button key={k} onClick={() => handleKey(k)} style={keyStyle(k)}>{k}</button>)}
           </div>
         ))}
