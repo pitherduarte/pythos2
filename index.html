@@ -1113,11 +1113,11 @@ function SettingsView({ dark, onToggleDark, onLogout }) {
   const [notif, setNotif] = useState(true);
   const [sound, setSound] = useState(false);
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', animation: 'pyfade .28s ease' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', animation: 'pyfade .28s ease' }}>
       <div style={{ padding: '8px 22px 16px' }}>
         <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: 'var(--text)', letterSpacing: '-0.015em' }}>Configurações</h1>
       </div>
-      <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px 14px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '0 22px 32px', display: 'flex', flexDirection: 'column' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 24 }}>
           <div style={{ width: 58, height: 58, borderRadius: '50%', flex: '0 0 auto', background: 'var(--pastel-mat)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: '#16160f' }}>P</div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -1452,17 +1452,14 @@ function App() {
 
       {/* Main content */}
       <div style={{
-        flex: 1, minWidth: 0, height: '100vh', display: 'flex', flexDirection: 'column',
-        position: 'relative', overflow: 'hidden',
+        flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column',
+        height: '100vh', overflow: 'hidden',
       }}>
-        <div style={{
-          flex: 1, minHeight: 0, display: 'flex', justifyContent: 'center',
-          overflowY: 'hidden',
+        <div className="py-scroll" style={{
+          flex: 1, minHeight: 0, overflowY: 'auto',
+          display: 'flex', justifyContent: 'center',
         }}>
-          <div style={{
-            width: '100%', maxWidth: isQuiz ? 720 : 720, height: '100%',
-            position: 'relative',
-          }}>
+          <div style={{ width: '100%', maxWidth: 720 }}>
             {screen}
           </div>
         </div>
