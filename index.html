@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Pythos — Plataforma de Estudos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: Inter, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  #root { height: 100%; width: 100%; }
+  button { font-family: inherit; cursor: pointer; }
+  input { font-family: inherit; }
+
+  @keyframes pyfade { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+  @keyframes pysheet { from { transform: translateY(100%); } to { transform: none; } }
+
+  /* Hide scrollbar for WebKit */
+  .py-scroll::-webkit-scrollbar { width: 5px; }
+  .py-scroll::-webkit-scrollbar-track { background: transparent; }
+  .py-scroll::-webkit-scrollbar-thumb { background: rgba(128,128,128,0.25); border-radius: 10px; }
+  .py-scroll::-webkit-scrollbar-thumb:hover { background: rgba(128,128,128,0.4); }
+
+  /* Responsive helpers */
+  .mobile-only { display: flex !important; }
+  .desktop-only { display: none !important; }
+
+  @media (min-width: 768px) {
+    .mobile-only { display: none !important; }
+    .desktop-only { display: flex !important; }
+  }
+
+  /* Touch feedback */
+  @media (hover: hover) {
+    .py-hover:hover { filter: brightness(1.06); }
+  }
+
+
+  /* Selection color */
+  ::selection { background: rgba(30,64,255,0.3); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ═══════════════════════════════════════════════════
+// 1. ICON COMPONENTS (Ic object)
+// ═══════════════════════════════════════════════════
+const Ic = {
+  home: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||24} height={p.s||24} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/>
+    </svg>
+  ),
+  chart: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||24} height={p.s||24} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 20V11"/><path d="M12 20V4"/><path d="M19 20v-6"/>
+    </svg>
+  ),
+  gear: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||24} height={p.s||24} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+    </svg>
+  ),
+  back: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||24} height={p.s||24} stroke="currentColor" strokeWidth={p.w||1.9} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 5l-7 7 7 7"/>
+    </svg>
+  ),
+  chevR: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 5l7 7-7 7"/>
+    </svg>
+  ),
+  chevD: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 9l7 7 7-7"/>
+    </svg>
+  ),
+  lock: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||18} height={p.s||18} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <rect x="5" y="10.5" width="14" height="9.5" rx="2.2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/>
+    </svg>
+  ),
+  check: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||18} height={p.s||18} stroke="currentColor" strokeWidth={p.w||2.4} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 12.5l5 5 11-11"/>
+    </svg>
+  ),
+  user: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||22} height={p.s||22} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="8.5" r="3.7"/><path d="M4.5 20c1.2-3.8 4-5.6 7.5-5.6s6.3 1.8 7.5 5.6"/>
+    </svg>
+  ),
+  bell: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10 20a2 2 0 0 0 4 0"/>
+    </svg>
+  ),
+  moon: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 14.5A8 8 0 0 1 9.5 4 7 7 0 1 0 20 14.5Z"/>
+    </svg>
+  ),
+  globe: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.5 2.5 2.5 14.5 0 17M12 3.5c-2.5 2.5-2.5 14.5 0 17"/>
+    </svg>
+  ),
+  sound: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 9.5h3.5L13 6v12l-4.5-3.5H5z"/><path d="M16.5 9a4 4 0 0 1 0 6"/>
+    </svg>
+  ),
+  key: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="8" cy="8" r="4"/><path d="M11 11l8 8M16 16l2-2M18.5 18.5l1.5-1.5"/>
+    </svg>
+  ),
+  shield: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/>
+    </svg>
+  ),
+  download: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/>
+    </svg>
+  ),
+  logout: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.8} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 4H6v16h8M10 12h10M16.5 8.5 20 12l-3.5 3.5"/>
+    </svg>
+  ),
+  flame: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.7} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3c.5 3-2 4-2 7a2 2 0 0 0 4 0c2 1.5 3 3.2 3 5.5A5.5 5.5 0 0 1 6.5 15c0-3 2-4.5 2.5-7 1.5 1 3 .5 3-5z"/>
+    </svg>
+  ),
+  bolt: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.7} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 3 5 13h6l-1 8 8-10h-6z"/>
+    </svg>
+  ),
+  target: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.7} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>
+    </svg>
+  ),
+  trophy: (p) => (
+    <svg viewBox="0 0 24 24" fill="none" width={p.s||20} height={p.s||20} stroke="currentColor" strokeWidth={p.w||1.7} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 4h10v4a5 5 0 0 1-10 0z"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3M10 14h4M9.5 20h5M12 14v6"/>
+    </svg>
+  ),
+};
+
+// ═══════════════════════════════════════════════════
+// 2. HELPERS
+// ═══════════════════════════════════════════════════
+function ProgressBar({ value, color, track, h = 6 }) {
+  return (
+    <div style={{ width: '100%', height: h, borderRadius: h, background: track || 'rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+      <div style={{ width: `${value}%`, height: '100%', borderRadius: h, background: color, transition: 'width .3s ease' }} />
+    </div>
+  );
+}
+
+function Ring({ value, size = 34, stroke = 3.5, color, track }) {
+  const r = (size - stroke) / 2;
+  const c = 2 * Math.PI * r;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={track||'rgba(255,255,255,0.1)'} strokeWidth={stroke} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth={stroke}
+        strokeDasharray={c} strokeDashoffset={c*(1-value/100)} strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function Chip({ children, bg, color, border }) {
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 6, height: 28, padding: '0 12px',
+      borderRadius: 999, background: bg, color, border: border || 'none',
+      fontFamily: 'Inter, sans-serif', fontSize: 12.5, fontWeight: 600, whiteSpace: 'nowrap',
+    }}>{children}</span>
+  );
+}
+
+function Label({ children }) {
+  return <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 4px 12px' }}>{children}</div>;
+}
+
+function Group({ children }) {
+  return <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16, overflow: 'hidden' }}>{children}</div>;
+}
+
+function Toggle({ on }) {
+  return (
+    <div style={{
+      width: 46, height: 28, borderRadius: 999, flex: '0 0 auto', position: 'relative',
+      background: on ? 'var(--accent)' : 'var(--surface-2)', transition: 'background .2s',
+    }}>
+      <div style={{
+        position: 'absolute', top: 3, left: on ? 21 : 3, width: 22, height: 22, borderRadius: '50%',
+        background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'left .2s',
+      }} />
+    </div>
+  );
+}
+
+const STATUS = {
+  done: { label: 'Concluído', bg: 'rgba(78,203,113,0.16)', color: '#5fd389' },
+  prog: { label: 'Em progresso', bg: 'color-mix(in srgb, var(--accent) 20%, transparent)', color: 'var(--accent-soft)' },
+  new: { label: 'Não iniciado', bg: 'var(--surface-2)', color: 'var(--text-muted)' },
+};
+
+function StatusBadge({ kind }) {
+  const s = STATUS[kind];
+  return (
+    <span style={{
+      padding: '5px 10px', borderRadius: 8, background: s.bg, color: s.color,
+      fontFamily: 'Inter, sans-serif', fontSize: 11, fontWeight: 600, whiteSpace: 'nowrap',
+    }}>{s.label}</span>
+  );
+}
+
+function Metric({ icon: Icon, value, label }) {
+  return (
+    <div style={{
+      flex: 1, background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 16,
+      padding: '13px 12px', display: 'flex', flexDirection: 'column', gap: 6,
+    }}>
+      <span style={{ color: 'var(--accent-soft)', display: 'flex' }}><Icon s={19} /></span>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 25, color: 'var(--text)', lineHeight: 1 }}>{value}</span>
+      <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11.5, color: 'var(--text-muted)' }}>{label}</span>
+    </div>
+  );
+}
+
+function SubjProgress({ name, pct, color }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      <span style={{ width: 104, flex: '0 0 auto', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: 'var(--text)' }}>{name}</span>
+      <div style={{ flex: 1 }}><ProgressBar value={pct} color={color} track="var(--surface-2)" h={9} /></div>
+      <span style={{ width: 34, textAlign: 'right', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 700, color: 'var(--text-muted)' }}>{pct}%</span>
+    </div>
+  );
+}
+
+function Badge({ icon: Icon, locked }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+      <div style={{
+        width: 54, height: 54, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: locked ? 'var(--surface)' : 'color-mix(in srgb, var(--accent) 18%, var(--surface))',
+        border: locked ? '1px solid var(--border)' : '1.5px solid var(--accent)',
+        color: locked ? 'var(--text-muted)' : 'var(--accent-soft)', opacity: locked ? 0.5 : 1,
+      }}>{locked ? <Ic.lock s={20} /> : <Icon s={24} />}</div>
+    </div>
+  );
+}
+
+function SetRow({ icon: Icon, label, toggle, value, danger, last }) {
+  const col = danger ? '#ff5a52' : 'var(--text)';
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', gap: 14, padding: '0 16px', height: 54,
+      borderBottom: last ? 'none' : '1px solid var(--border)',
+    }}>
+      <span style={{ color: danger ? '#ff5a52' : 'var(--text-muted)', display: 'flex', flex: '0 0 auto' }}><Icon s={20} /></span>
+      <span style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: col }}>{label}</span>
+      {toggle !== undefined && <Toggle on={toggle} />}
+      {value !== undefined && <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, color: 'var(--text-muted)' }}>{value}</span>}
+      {toggle === undefined && !danger && <span style={{ color: 'var(--text-muted)', display: 'flex' }}><Ic.chevR s={18} /></span>}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 3. SYM_COLOR + AbstractMark + Sym
+// ═══════════════════════════════════════════════════
+const SYM_COLOR = {
+  sinais:'#E05C2A', fracoes:'#D98C1F', potencias:'#8B3FD9', expressoes:'#1FA7C9', notaveis:'#E0517D',
+  fatoracao:'#1FAA6B', equacoes:'#2B5CE6', inequacoes:'#C07A1E', polinomiais:'#5A6FD9', explog:'#D93F7A',
+  funcoes:'#2B5CE6', trig:'#E68A2B', geoanalit:'#1FB07E', limites:'#7A4FE6', derivadas:'#E0517D', integral:'#1FB07E',
+  atomo:'#1FA7C9', tabela:'#E68A2B', ligacoes:'#2B5CE6', geometria:'#1FB07E', polaridade:'#E0517D',
+  conectivos:'#7A4FE6', verdade:'#2B5CE6', implicacao:'#E68A2B', argumentos:'#1FB07E',
+};
+
+function AbstractMark({ sym, s = 40, c }) {
+  const col = c || SYM_COLOR[sym] || '#2B5CE6';
+  const p = { fill: 'none', stroke: col, strokeWidth: 2.4, strokeLinecap: 'round', strokeLinejoin: 'round' };
+  const F = { fill: col, stroke: 'none' };
+  let body;
+  switch (sym) {
+    case 'sinais': body = <><path d="M10 20 H30" {...p}/><path d="M20 10 V30" {...p}/><circle cx="33" cy="28" r="3" {...F}/></>; break;
+    case 'fracoes': body = <><path d="M10 20 H30" {...p}/><circle cx="14" cy="12" r="3.5" {...F}/><circle cx="26" cy="28" r="3.5" {...F}/></>; break;
+    case 'potencias': body = <><text x="10" y="28" fontFamily="Georgia,serif" fontSize="24" fontWeight="700" fill={col}>x</text><text x="26" y="16" fontFamily="Georgia,serif" fontSize="14" fontWeight="700" fill={col}>2</text></>; break;
+    case 'expressoes': body = <><text x="4" y="28" fontFamily="Georgia,serif" fontSize="22" fontWeight="700" fill={col}>a+b</text></>; break;
+    case 'notaveis': body = <><path d="M6 30 L20 8 L34 30 Z" {...p}/><circle cx="20" cy="20" r="6" {...p}/></>; break;
+    case 'fatoracao': body = <><path d="M14 6 C8 6 8 20 8 20 S8 34 14 34" {...p} strokeWidth="2.8"/><path d="M26 6 C32 6 32 20 32 20 S32 34 26 34" {...p} strokeWidth="2.8"/><circle cx="20" cy="20" r="2" {...F}/></>; break;
+    case 'equacoes': body = <><path d="M8 15 H32 M8 25 H32" {...p} strokeWidth="2.6"/></>; break;
+    case 'inequacoes': body = <><path d="M8 14 L28 20 L8 26" {...p} strokeWidth="2.6"/><path d="M32 30 L12 36" {...p} strokeWidth="2" opacity="0.5"/></>; break;
+    case 'polinomiais': body = <><path d="M5 28 C 13 28, 13 12, 21 12 S 29 28, 35 18" {...p}/><path d="M5 32 H35" {...p} strokeWidth="1.5"/></>; break;
+    case 'explog': body = <><path d="M6 30 C10 30 14 8 20 8 S30 16 35 14" {...p}/><path d="M6 8 V34" {...p} strokeWidth="1.5"/><path d="M6 34 H36" {...p} strokeWidth="1.5"/></>; break;
+    case 'funcoes': body = <path d="M5 28 C 13 28, 13 12, 21 12 S 29 28, 35 18" {...p} />; break;
+    case 'trig': body = <><path d="M8 30 L20 9 L32 30 Z" {...p} /><path d="M14.5 30 a7 7 0 0 1 11 0" {...p} /></>; break;
+    case 'limites': body = <><circle cx="29" cy="20" r="3" {...F} /><path d="M6 12 H21 M6 20 H23 M6 28 H21" {...p} /></>; break;
+    case 'derivadas': body = <><path d="M6 31 C14 31 16 10 25 10" {...p} /><path d="M13 31 L31 13" {...p} /></>; break;
+    case 'integral': body = <><path d="M15 8 C11 8 11 14 11 20 S11 32 7 32" {...p} /><path d="M17 26 H31 M19 21 H31 M21 16 H31" {...p} strokeWidth="2" opacity="0.55" /></>; break;
+    case 'geoanalit': body = <><path d="M4 20 H36 M20 4 V36" {...p} strokeWidth="1.5"/><circle cx="20" cy="20" r="11" {...p}/><path d="M9 31 L31 9" {...p}/></>; break;
+    case 'atomo': body = <><circle cx="20" cy="20" r="2.4" {...F} /><ellipse cx="20" cy="20" rx="13" ry="6" {...p} /><ellipse cx="20" cy="20" rx="13" ry="6" {...p} transform="rotate(60 20 20)" /></>; break;
+    case 'tabela': body = <><rect x="7" y="7" width="11" height="11" rx="1.6" {...p} /><rect x="22" y="7" width="11" height="11" rx="1.6" {...p} /><rect x="7" y="22" width="11" height="11" rx="1.6" {...p} /><rect x="22" y="22" width="11" height="11" rx="1.6" {...p} /></>; break;
+    case 'ligacoes': body = <><circle cx="11" cy="20" r="5" {...p} /><circle cx="29" cy="20" r="5" {...p} /><path d="M16 20 H24" {...p} /></>; break;
+    case 'geometria': body = <><circle cx="20" cy="11" r="3.4" {...F} /><circle cx="9" cy="29" r="3" {...F} /><circle cx="31" cy="29" r="3" {...F} /><path d="M20 11 L9 29 M20 11 L31 29" {...p} /></>; break;
+    case 'polaridade': body = <><circle cx="20" cy="20" r="12" {...p} /><path d="M20 8 a12 12 0 0 1 0 24 Z" {...F} opacity="0.45" /></>; break;
+    case 'conectivos': body = <><circle cx="15" cy="20" r="8" {...p} /><circle cx="25" cy="20" r="8" {...p} /></>; break;
+    case 'verdade': body = <><rect x="8" y="8" width="24" height="24" rx="2.5" {...p} /><path d="M20 8 V32 M8 20 H32" {...p} /></>; break;
+    case 'implicacao': body = <path d="M7 20 H30 M24 13 L32 20 L24 27" {...p} />; break;
+    case 'argumentos': body = <><circle cx="11" cy="29" r="2.6" {...F} /><circle cx="20" cy="20" r="2.6" {...F} /><circle cx="29" cy="11" r="2.6" {...F} /></>; break;
+    default: body = <circle cx="20" cy="20" r="10" {...p} />;
+  }
+  return <svg width={s} height={s} viewBox="0 0 40 40">{body}</svg>;
+}
+
+function Sym({ area, size = 40, color }) {
+  return <AbstractMark sym={area} s={size} c={color} />;
+}
+
+// ═══════════════════════════════════════════════════
+// 4. INFO DATA
+// ═══════════════════════════════════════════════════
+const INFO = {
+  sinais:{intro:'Conjuntos numéricos, a lógica dos sinais e a ordem em que as operações acontecem. Erros de sinal são a causa #1 de conta errada.',points:[['Conjuntos','N ⊂ Z ⊂ Q ⊂ R — cada conjunto inclui o anterior.'],['Jogo de sinais','(−) × (−) = (+); sinais iguais dão +, diferentes dão −.'],['Precedência','Parênteses → potência → × ÷ → + −, sempre da esquerda para a direita.']],examples:[['−3 × (−2) + 4 = ?','6 + 4 = 10.'],['2 + 3 × 4 = ?','2 + 12 = 14 (multiplica antes de somar).']]},
+  fracoes:{intro:'Operar com frações sem medo e transitar entre fração, decimal e porcentagem.',points:[['Equivalência','Multiplicar ou dividir em cima e embaixo pelo mesmo número não muda a fração.'],['MMC','O menor número que é múltiplo de todos os denominadores.'],['Conversão','Fração ↔ decimal ↔ porcentagem são três formas de dizer a mesma coisa.']],examples:[['2/3 + 1/4 = ?','8/12 + 3/12 = 11/12.'],['0,75 como fração?','3/4.']]},
+  potencias:{intro:'Expoentes, suas propriedades e a ponte entre potência e raiz.',points:[['Potência','aⁿ = a × a × … × a (n vezes).'],['Propriedades','Produto de mesma base: soma expoentes. Potência de potência: multiplica expoentes.'],['Radicais','ⁿ√a = a^(1/n). Radical é potência com expoente fracionário.']],examples:[['2³ × 2⁴ = ?','2⁷ = 128.'],['√50 simplificado?','5√2.']]},
+  expressoes:{intro:'Anatomia de uma expressão algébrica e as manipulações elementares: termos, distributiva e frações com letras.',points:[['Termos semelhantes','Mesmo grupo de variáveis com mesmos expoentes — podem ser somados.'],['Distributiva','a(b + c) = ab + ac — distribuir é multiplicar cada parcela.'],['Frações algébricas','Funcionam como frações numéricas, mas com letras.']],examples:[['3x + 5x − 2x = ?','6x.'],['2(x + 3) = ?','2x + 6.']]},
+  notaveis:{intro:'Os padrões de multiplicação que aparecem o tempo todo e poupam conta.',points:[['Quadrado da soma','(a + b)² = a² + 2ab + b².'],['Diferença de quadrados','a² − b² = (a + b)(a − b).'],['Cubo','(a + b)³ = a³ + 3a²b + 3ab² + b³.']],examples:[['(x + 3)² = ?','x² + 6x + 9.'],['x² − 25 = ?','(x + 5)(x − 5).']]},
+  fatoracao:{intro:'O caminho inverso da expansão — transformar soma em produto para simplificar.',points:[['Fator comum','Colocar em evidência o que todos os termos compartilham.'],['Agrupamento','Agrupar termos em pares e fatorar cada grupo.'],['Trinômio','x² + Sx + P = (x + a)(x + b) onde a + b = S e ab = P.']],examples:[['6x² + 9x = ?','3x(2x + 3).'],['x² − 5x + 6 = ?','(x − 2)(x − 3).']]},
+  equacoes:{intro:'Isolar a incógnita e resolver do 1º ao 2º grau por todos os caminhos.',points:[['1º grau','Isolar x usando operações inversas: ax + b = 0 → x = −b/a.'],['2º grau','Bhaskara: x = (−b ± √Δ) / 2a, onde Δ = b² − 4ac.'],['Completar quadrado','Reescrever na forma a(x + h)² + k para encontrar vértice e raízes.']],examples:[['3x − 7 = 8. Qual é x?','x = 5.'],['x² − 4x + 3 = 0?','x = 1 ou x = 3.']]},
+  inequacoes:{intro:'Resolver desigualdades, estudar sinal e lidar com mais de uma equação.',points:[['Regra do sinal','Ao multiplicar por negativo, inverte-se a desigualdade.'],['Estudo de sinal','Raízes na reta e análise do sinal em cada intervalo.'],['Sistemas','Substituição ou adição para encontrar as incógnitas.']],examples:[['2x − 6 > 0?','x > 3.'],['x + y = 5 e x − y = 1?','x = 3, y = 2.']]},
+  polinomiais:{intro:'As funções construídas a partir de potências de x: constante, afim, quadrática e além.',points:[['Afim','f(x) = ax + b — reta com inclinação a e corte em b.'],['Quadrática','f(x) = ax² + bx + c — parábola com vértice e eixo de simetria.'],['Modular','f(x) = |x| — gráfico em V, define-se por partes.']],examples:[['f(x) = 2x − 1. Qual é f(3)?','f(3) = 5.'],['Vértice de f(x) = x² − 4x + 3?','x_v = 2, y_v = −1.']]},
+  explog:{intro:'Crescimento multiplicativo (exponencial) e sua operação inversa (logaritmo).',points:[['Exponencial','f(x) = aˣ — cresce se a > 1, decresce se 0 < a < 1.'],['Logaritmo','log_a(b) = c ⟺ aᶜ = b. É o expoente que falta.'],['Número e','e ≈ 2,718 — a base natural, onipresente em crescimento contínuo.']],examples:[['log₂(8) = ?','3, pois 2³ = 8.'],['Resolva 2ˣ = 16.','x = 4.']]},
+  funcoes:{intro:'Uma função é uma regra que relaciona cada entrada (x) a um único resultado (y). Imagine uma máquina: você coloca um número, ela aplica a regra e devolve outro.',points:[['Notação f(x)','f(x) = 2x + 1 significa: pegue x, multiplique por 2 e some 1.'],['Domínio e imagem','Domínio são as entradas possíveis; imagem são as saídas obtidas.'],['Tipos comuns','Afim (reta), quadrática (parábola), exponencial, entre outras.']],examples:[['f(x) = 2x + 1. Quanto vale f(3)?','f(3) = 2·3 + 1 = 7.'],['Qual o domínio de f(x) = 1/x?','Todos os reais, menos 0 — não se divide por zero.'],['f(x) = x². Qual é a imagem?','y ≥ 0, pois todo quadrado é positivo ou zero.']]},
+  trig:{intro:'A trigonometria estuda a relação entre ângulos e lados de triângulos. É a base de ondas, círculos e tudo que se repete.',points:[['Seno, cosseno, tangente','No triângulo retângulo: sen = oposto/hipotenusa, cos = adjacente/hipotenusa, tan = oposto/adjacente.'],['Círculo trigonométrico','Raio 1: o ângulo gira e define o cosseno (horizontal) e o seno (vertical).'],['Valores notáveis','sen 30° = 1/2, sen 45° = √2/2, sen 60° = √3/2.']],examples:[['Oposto 3, hipotenusa 5. Qual o seno?','sen = 3/5 = 0,6.'],['Quanto vale cos 60°?','cos 60° = 1/2 = 0,5.']]},
+  algebra:{intro:'Álgebra usa letras no lugar de números desconhecidos, permitindo resolver equações e descrever padrões gerais.',points:[['Produtos notáveis','(a + b)² = a² + 2ab + b².'],['Fatoração','Reescrever como produto: x² − 9 = (x − 3)(x + 3).'],['Equação do 2º grau','ax² + bx + c = 0, resolvida por Bhaskara ou fatoração.']],examples:[['Resolva x² − 5x + 6 = 0.','Fatorando: (x − 2)(x − 3) = 0 → x = 2 ou x = 3.'],['Expanda (x + 4)².','x² + 8x + 16.']]},
+  limites:{intro:'O limite mostra para qual valor uma função se aproxima quando x chega perto de um ponto. É o alicerce do cálculo.',points:[['Ideia intuitiva','Não importa o valor exato em x, e sim para onde a função tende ao redor dele.'],['Limites laterais','Aproximar pela esquerda (x→a⁻) e pela direita (x→a⁺).'],['Continuidade','A função é contínua se o limite existe e é igual ao valor no ponto.']],examples:[['lim (x→2) de 3x.','Basta substituir: 3·2 = 6.'],['lim (x→0) de sen(x)/x.','É igual a 1 — um limite fundamental.']]},
+  derivadas:{intro:'A derivada mede a rapidez com que algo muda: é a inclinação da reta tangente à curva em cada ponto.',points:[['Regra da potência','d/dx [xⁿ] = n·xⁿ⁻¹.'],['Interpretação','A velocidade é a derivada da posição em relação ao tempo.'],['Regras básicas','A derivada da soma é a soma das derivadas; constantes saem multiplicando.']],examples:[['Derivada de f(x) = x³.',"f'(x) = 3x²."],['Derivada de f(x) = 5x² + 2x.',"f'(x) = 10x + 2."]]},
+  integral:{intro:'A integral soma infinitas fatias para calcular áreas sob curvas. É a operação inversa da derivada.',points:[['Antiderivada','∫ xⁿ dx = xⁿ⁺¹/(n+1) + C.'],['Cálculo de área','A integral definida entre a e b dá a área sob a curva nesse intervalo.'],['Teorema fundamental','Liga derivada e integral: derivar desfaz integrar.']],examples:[['∫ 2x dx.','x² + C.'],['∫ 3 dx.','3x + C.']]},
+  atomo:{intro:'O átomo é a menor parte da matéria que mantém as propriedades de um elemento. Tem um núcleo e elétrons ao redor.',points:[['Partículas','Prótons (+) e nêutrons no núcleo; elétrons (−) na eletrosfera.'],['Número atômico (Z)','É a quantidade de prótons e define qual é o elemento.'],['Distribuição eletrônica','Os elétrons ocupam camadas de energia (K, L, M…).']],examples:[['O carbono tem Z = 6. Quantos prótons?','6 prótons (e 6 elétrons, se neutro).'],['Onde ficam os elétrons?','Na eletrosfera, em camadas ao redor do núcleo.']]},
+  tabela:{intro:'A tabela periódica organiza todos os elementos por número atômico e por propriedades parecidas.',points:[['Períodos e famílias','Linhas são períodos; colunas são famílias com propriedades semelhantes.'],['Metais e ametais','A maioria são metais (à esquerda); ametais ficam à direita.'],['Propriedades periódicas','Raio atômico e eletronegatividade variam de forma previsível.']],examples:[['O que elementos da mesma família têm em comum?','O mesmo número de elétrons na última camada.'],['A eletronegatividade cresce em qual sentido?','Da esquerda para a direita e de baixo para cima.']]},
+  ligacoes:{intro:'Átomos se unem para ficar estáveis. Essas uniões são as ligações que mantêm as substâncias juntas.',points:[['Iônica','Transferência de elétrons entre metal e ametal (ex.: NaCl).'],['Covalente','Compartilhamento de elétrons entre ametais (ex.: H₂O).'],['Metálica','Elétrons livres entre metais — explica a condução elétrica.']],examples:[['Que ligação há no sal (NaCl)?','Iônica: o sódio doa um elétron ao cloro.'],['E na água (H₂O)?','Covalente: hidrogênio e oxigênio compartilham elétrons.']]},
+  geometria:{intro:'A geometria molecular descreve o formato 3D das moléculas, definido pelos pares de elétrons ao redor do átomo central.',points:[['Teoria VSEPR','Pares de elétrons se repelem e se afastam o máximo possível.'],['Formatos comuns','Linear, angular, trigonal e tetraédrica.'],['Por que importa','A geometria define a polaridade e o comportamento da substância.']],examples:[['Qual a geometria da água (H₂O)?','Angular, por causa dos pares livres do oxigênio.'],['E a do CO₂?','Linear.']]},
+  polaridade:{intro:'Polaridade indica como a carga elétrica se distribui na molécula — se existe um lado mais negativo e outro mais positivo.',points:[['Ligação polar','Surge quando os átomos têm eletronegatividades diferentes.'],['Polar x apolar','Depende da geometria e da soma dos vetores de polaridade.'],['Regra prática','Semelhante dissolve semelhante: polar dissolve polar.']],examples:[['A água é polar ou apolar?','Polar — formato angular, oxigênio mais negativo.'],['E o óleo?','Apolar — por isso não se mistura com água.']]},
+  conectivos:{intro:'Conectivos lógicos unem proposições para formar novas, usando "e", "ou", "não", "se… então".',points:[['Negação (¬)','Inverte o valor: ¬V = F.'],['Conjunção (∧) "e"','Só é verdadeira se as duas forem verdadeiras.'],['Disjunção (∨) "ou"','É verdadeira se ao menos uma for verdadeira.']],examples:[['\"Choveu E fez sol\" é verdade se só choveu?','Não — a conjunção exige as duas verdadeiras.'],['\"Vou de ônibus OU a pé\", com só uma verdadeira?','Verdadeira — basta uma na disjunção.']]},
+  verdade:{intro:'A tabela-verdade lista todas as combinações possíveis de uma proposição, mostrando quando ela é verdadeira ou falsa.',points:[['Construção','Para n proposições há 2ⁿ linhas de combinações.'],['Tautologia','É verdadeira em todas as linhas.'],['Contradição','É falsa em todas as linhas.']],examples:[['Quantas linhas para 2 proposições?','2² = 4 linhas.'],['\"p ∨ ¬p\" é o quê?','Uma tautologia — sempre verdadeira.']]},
+  implicacao:{intro:'A implicação "se p então q" (p → q) só é falsa quando p é verdadeiro e q é falso.',points:[['Condicional','Em p → q, p é a condição e q a consequência.'],['Contrapositiva','p → q equivale a ¬q → ¬p.'],['Leis de De Morgan','¬(p ∧ q) = ¬p ∨ ¬q.']],examples:[['\"Se chover, levo guarda-chuva.\" Choveu e não levei?','Falso — é o único caso que torna a implicação falsa.'],['Contrapositiva de \"se estudo, passo\".','\"Se não passo, então não estudei.\"']]},
+  sequencias:{intro:'Sequências são listas ordenadas de números seguindo uma lei de formação. PA e PG são os dois padrões fundamentais.',points:[['Progressão Aritmética (PA)','Cada termo difere do anterior pela razão r constante. Termo geral: aₙ = a₁ + (n−1)·r.'],['Progressão Geométrica (PG)','Cada termo é multiplicado pela razão q. Termo geral: aₙ = a₁ · qⁿ⁻¹.'],['Somas','Sₙ(PA) = n(a₁ + aₙ)/2. Sₙ(PG) = a₁(qⁿ − 1)/(q − 1) para q ≠ 1.']],examples:[['PA com a₁ = 3 e r = 4. Qual é a₆?','a₆ = 3 + 5·4 = 23.'],['PG: a₁ = 2, q = 3. Qual é a₄?','a₄ = 2·3³ = 54.']]},
+  combinatoria:{intro:'Combinatória conta de quantas formas podemos organizar ou escolher elementos. Probabilidade mede a chance de um evento ocorrer.',points:[['Princípio fundamental da contagem','Se uma escolha A tem m formas e B tem n formas, juntas têm m·n formas.'],['Permutação e Combinação','Permutação importa a ordem; Combinação não. C(n,k) = n! / (k!(n−k)!).'],['Probabilidade clássica','P(A) = casos favoráveis / total de casos igualmente prováveis.']],examples:[['Quantos anagramas tem \"MAR\"?','P(3) = 3! = 6.'],['Escolher 2 de 5 pessoas. Quantas duplas?','C(5,2) = 10.']]},
+  polinomios:{intro:'Polinômios são expressões da forma aₙxⁿ + … + a₁x + a₀.',points:[['Grau e coeficientes','O grau é o maior expoente. O coeficiente líder é o de grau máximo.'],['Divisão e Teorema do Resto','Ao dividir p(x) por (x − a), o resto é p(a).'],['Raízes e fatoração','r é raiz se p(r) = 0.']],examples:[['Qual o resto de x³ − 2x + 1 dividido por (x − 1)?','p(1) = 1 − 2 + 1 = 0; resto = 0.'],['Fatore x² − 5x + 6.','(x − 2)(x − 3); raízes 2 e 3.']]},
+  complexos:{intro:'Números complexos estendem os reais adicionando a unidade imaginária i (i² = −1).',points:[['Forma algébrica','z = a + bi; a é a parte real, b a imaginária.'],['Módulo e conjugado','|z| = √(a² + b²). Conjugado: z̄ = a − bi.'],['Forma trigonométrica','z = |z|(cos θ + i sen θ).']],examples:[['(3 + 2i) + (1 − 5i) = ?','4 − 3i.'],['|2 + 2i| = ?','√(4 + 4) = 2√2.']]},
+  matrizes:{intro:'Matrizes são tabelas de números que representam transformações lineares e sistemas de equações.',points:[['Operações','Soma e subtração elemento a elemento; multiplicação segue linha × coluna.'],['Determinante 2×2','det = ad − bc para [[a,b],[c,d]].'],['Matriz inversa e sistemas','A⁻¹ existe se det ≠ 0.']],examples:[['det de [[2,3],[1,4]]?','2·4 − 3·1 = 5.'],['Sistema: 2x+y=5, x+3y=10.','x=1, y=3.']]},
+  geo3d:{intro:'A geometria espacial estuda figuras em três dimensões.',points:[['Poliedros de Euler','V − A + F = 2.'],['Prismas e cilindros','Volume = Área da base × altura.'],['Pirâmides, cones e esfera','Vol. pirâmide/cone = (1/3) Abase × h.']],examples:[['Cubo de aresta 3 cm. Qual o volume?','V = 3³ = 27 cm³.'],['Esfera r = 2. Qual o volume?','V = (4/3)π·8 ≈ 33,5 cm³.']]},
+  aplicacoes:{intro:'O cálculo resolve problemas do mundo real: encontrar máximos e mínimos, calcular áreas irregulares.',points:[['Otimização','Iguale a derivada a zero para achar críticos.'],['Área entre curvas','∫ₐᵇ [f(x) − g(x)] dx.'],['Taxa de variação','A derivada modela velocidade, crescimento e qualquer taxa instantânea.']],examples:[['Máximo de f(x) = −x² + 4x.',"f'(x) = −2x + 4 = 0 → x = 2; f(2) = 4."],['Área de y = x² e y = x entre 0 e 1.','∫₀¹ (x − x²) dx = 1/6.']]},
+  estatistica:{intro:'A estatística descritiva resume conjuntos de dados usando medidas numéricas e gráficos.',points:[['Medidas de tendência central','Média, mediana e moda.'],['Medidas de dispersão','Variância e desvio padrão.'],['Distribuições de frequência','Organizam dados em classes.']],examples:[['Média de {2, 4, 4, 6, 8, 10, 10}?','44/7 ≈ 6,3.'],['Mediana do mesmo conjunto?','6.']]},
+  geoanalit:{intro:'Geometria analítica usa coordenadas para descrever figuras geométricas por equações algébricas.',points:[['Reta','Equação geral: ax + by + c = 0.'],['Circunferência','(x − a)² + (y − b)² = r².'],['Cônicas','Parábola, elipse e hipérbole.']],examples:[['Distância entre (1,2) e (4,6)?','√(9+16) = 5.'],['Equação da circunferência centro (2,−1), r=3?','(x−2)² + (y+1)² = 9.']]},
+  logaritmos:{intro:'Logaritmos são o inverso da exponenciação: log_b(x) = y significa b^y = x.',points:[['Definição','log_b(x) = y ⟺ bʸ = x.'],['Propriedades','log do produto é a soma; log do quociente é a diferença.'],['Função logarítmica','f(x) = log_b(x) é a inversa de g(x) = bˣ.']],examples:[['log₂(8) = ?','3, pois 2³ = 8.'],['log(1000) = ?','3, pois 10³ = 1000.']]},
+  argumentos:{intro:'Um argumento parte de premissas e chega a uma conclusão.',points:[['Validade','Importa a forma do raciocínio, não se as frases são reais.'],['Modus ponens','Se p → q e p são verdadeiros, então q.'],['Modus tollens','Se p → q e ¬q, então ¬p.']],examples:[['p → q e p verdadeiros. Qual a conclusão?','q (modus ponens).'],['\"Todo A é B; x é A.\" Logo?','x é B.']]},
+};
+
+// ═══════════════════════════════════════════════════
+// 5. QUESTIONS DATA
+// ═══════════════════════════════════════════════════
+const QUESTIONS = {
+  mat:{pastel:'var(--pastel-mat)',tag:'Derivadas',counter:'Questão 3 de 10',value:30,sym:'∫',eyebrow:'Cálculo · Derivadas',typed:true,current:3,total:10,instr:'Derive a função e digite o resultado no campo abaixo.',answer:'3x^2+2',hint:'Use a regra da potência: a derivada de xⁿ é n·xⁿ⁻¹. Derive cada termo separadamente e some os resultados.',question:'Qual é a derivada de f(x) = x³ + 2x?',options:[{l:'A',t:'3x² + 2',correct:true},{l:'B',t:'x² + 2'},{l:'C',t:'3x³ + 2x'},{l:'D',t:'3x² + 2x'}]},
+  qui:{pastel:'var(--pastel-qui)',tag:'Ligações',counter:'Questão 5 de 12',value:42,sym:'⬡',eyebrow:'Química Orgânica · Ligações',typed:false,current:5,total:12,instr:'Analise a molécula e selecione a geometria correta.',hint:'Considere os pares de elétrons livres do átomo central (oxigênio): eles "empurram" os hidrogênios.',question:'Qual é a geometria molecular da água (H₂O)?',options:[{l:'A',t:'Linear'},{l:'B',t:'Angular',correct:true},{l:'C',t:'Trigonal plana'},{l:'D',t:'Tetraédrica'}]},
+  log:{pastel:'var(--pastel-log)',tag:'Proposições',counter:'Questão 2 de 8',value:20,sym:'∴',eyebrow:'Lógica Proposicional · Implicação',typed:false,current:2,total:8,instr:'Leia a proposição e escolha a equivalência correta.',hint:'A negação de uma condicional mantém a hipótese verdadeira e nega a conclusão: ¬(p → q) = p ∧ ¬q.',question:'A negação de "p → q" é logicamente equivalente a:',options:[{l:'A',t:'p ∧ ¬q',correct:true},{l:'B',t:'¬p ∨ q'},{l:'C',t:'¬p ∧ q'},{l:'D',t:'p → ¬q'}]},
+};
+
+// ═══════════════════════════════════════════════════
+// 6. CURRICULUM DATA
+// ═══════════════════════════════════════════════════
+const CURRICULUM = {
+  mat:{name:'Matemática',pct:8,pastel:'var(--pastel-mat)',sections:[
+    {title:'Fundamentos Numéricos',subs:[
+      {id:'sinais',title:'Números e Sinais',sym:'sinais',q:25,pct:100,status:'done',parent:'Fundamentos Numéricos',lessons:[{title:'Conjuntos numéricos',q:5},{title:'Jogo de sinais (+ e −)',q:5},{title:'Multiplicação e divisão com sinais',q:5},{title:'Ordem das operações',q:5},{title:'Reta numérica e valor absoluto',q:5}]},
+      {id:'fracoes',title:'Frações e Decimais',sym:'fracoes',q:25,pct:60,status:'prog',parent:'Fundamentos Numéricos',lessons:[{title:'Frações equivalentes e simplificação',q:5},{title:'MMC e MDC',q:5},{title:'Soma e subtração de frações',q:5},{title:'Multiplicação e divisão de frações',q:5},{title:'Conversão fração ↔ decimal ↔ porcentagem',q:5}]},
+      {id:'potencias',title:'Potências e Radicais',sym:'potencias',q:30,pct:0,status:'new',parent:'Fundamentos Numéricos',lessons:[{title:'Potências de expoente natural',q:5},{title:'Propriedades das potências',q:5},{title:'Expoente zero e negativo',q:5},{title:'Raízes e radicais',q:5},{title:'Expoente fracionário',q:5},{title:'Notação científica',q:5}]},
+    ]},
+    {title:'Manipulação Algébrica',subs:[
+      {id:'expressoes',title:'Expressões Algébricas',sym:'expressoes',q:25,pct:0,status:'new',parent:'Manipulação Algébrica',lessons:[{title:'Termos, coeficientes e variáveis',q:5},{title:'Termos semelhantes',q:5},{title:'Propriedade distributiva',q:5},{title:'Parênteses e aninhamentos',q:5},{title:'Frações algébricas',q:5}]},
+      {id:'notaveis',title:'Produtos Notáveis',sym:'notaveis',q:25,locked:true,parent:'Manipulação Algébrica',lessons:[{title:'Quadrado da soma e da diferença',q:5},{title:'Diferença de quadrados',q:5},{title:'Cubo da soma e da diferença',q:5},{title:'Soma e diferença de cubos',q:5},{title:'Produto (x+p)(x+q)',q:5}]},
+      {id:'fatoracao',title:'Fatoração',sym:'fatoracao',q:25,locked:true,parent:'Manipulação Algébrica',lessons:[{title:'Fator comum em evidência',q:5},{title:'Agrupamento',q:5},{title:'Fatoração de trinômios',q:5},{title:'Fatorar usando produtos notáveis',q:5},{title:'Simplificação de frações algébricas',q:5}]},
+      {id:'equacoes',title:'Equações',sym:'equacoes',q:30,locked:true,parent:'Manipulação Algébrica',lessons:[{title:'Equações do 1º grau',q:5},{title:'Equações do 2º grau por Bhaskara',q:5},{title:'Equações do 2º grau por fatoração',q:5},{title:'Completar o quadrado',q:5},{title:'Equações fracionárias e literais',q:5},{title:'Equações biquadradas e com radicais',q:5}]},
+      {id:'inequacoes',title:'Inequações e Sistemas',sym:'inequacoes',q:25,locked:true,parent:'Manipulação Algébrica',lessons:[{title:'Inequações do 1º grau',q:5},{title:'Inequações do 2º grau',q:5},{title:'Inequações com módulo',q:5},{title:'Sistemas de equações lineares',q:5},{title:'Inequações produto e quociente',q:5}]},
+    ]},
+    {title:'Funções e Pré-Cálculo',subs:[
+      {id:'funcoes',title:'Conceito de Função',sym:'funcoes',q:30,locked:true,parent:'Funções e Pré-Cálculo',lessons:[{title:'Definição, domínio e imagem',q:5},{title:'Notação e leitura de gráficos',q:5},{title:'Função par, ímpar e periódica',q:5},{title:'Composição de funções',q:5},{title:'Função inversa',q:5},{title:'Transformações de gráficos',q:5}]},
+      {id:'polinomiais',title:'Funções Polinomiais',sym:'polinomiais',q:25,locked:true,parent:'Funções e Pré-Cálculo',lessons:[{title:'Função constante e afim',q:5},{title:'Função quadrática',q:5},{title:'Estudo de sinal e raízes',q:5},{title:'Funções de grau maior',q:5},{title:'Função modular',q:5}]},
+      {id:'explog',title:'Exponencial e Logaritmo',sym:'explog',q:30,locked:true,parent:'Funções e Pré-Cálculo',lessons:[{title:'Função exponencial',q:5},{title:'Definição de logaritmo',q:5},{title:'Propriedades dos logaritmos',q:5},{title:'Mudança de base',q:5},{title:'Equações exponenciais e logarítmicas',q:5},{title:'O número e e o ln',q:5}]},
+      {id:'trig',title:'Trigonometria',sym:'trig',q:30,locked:true,parent:'Funções e Pré-Cálculo',lessons:[{title:'Razões trigonométricas no triângulo',q:5},{title:'Ciclo trigonométrico e radianos',q:5},{title:'Funções seno, cosseno e tangente',q:5},{title:'Identidades fundamentais',q:5},{title:'Fórmulas de adição e arco duplo',q:5},{title:'Funções trigonométricas inversas',q:5}]},
+      {id:'geoanalit',title:'Geometria Analítica',sym:'geoanalit',q:25,locked:true,parent:'Funções e Pré-Cálculo',lessons:[{title:'Plano cartesiano e distância',q:5},{title:'Equação da reta',q:5},{title:'Coeficiente angular',q:5},{title:'Circunferência',q:5},{title:'Cônicas (introdução)',q:5}]},
+    ]},
+    {title:'Cálculo',subs:[
+      {id:'limites',title:'Limites',sym:'limites',q:40,locked:true,parent:'Cálculo',lessons:[{title:'Noção intuitiva de limite',q:5},{title:'Limites laterais',q:5},{title:'Propriedades dos limites',q:5},{title:'Formas indeterminadas (0/0)',q:5},{title:'Técnicas algébricas',q:5},{title:'Limites no infinito e assíntotas',q:5},{title:'Limites fundamentais',q:5},{title:'Continuidade',q:5}]},
+      {id:'derivadas',title:'Derivadas',sym:'derivadas',q:40,locked:true,parent:'Cálculo',lessons:[{title:'Taxa de variação e definição',q:5},{title:'Regras básicas',q:5},{title:'Regra do produto e do quociente',q:5},{title:'Regra da cadeia',q:5},{title:'Derivadas de trigonométricas',q:5},{title:'Derivadas de exponenciais e logaritmos',q:5},{title:'Derivação implícita',q:5},{title:'Aplicações',q:5}]},
+      {id:'integral',title:'Integrais',sym:'integral',q:40,locked:true,parent:'Cálculo',lessons:[{title:'Antiderivada e integral indefinida',q:5},{title:'Regras básicas de integração',q:5},{title:'Integral definida e área',q:5},{title:'Teorema Fundamental do Cálculo',q:5},{title:'Integração por substituição',q:5},{title:'Integração por partes',q:5},{title:'Frações parciais',q:5},{title:'Substituição trigonométrica',q:5}]},
+    ]},
+  ]},
+  qui:{name:'Química',pct:60,pastel:'var(--pastel-qui)',sections:[
+    {title:'Atomística',subs:[
+      {id:'atomo',title:'Estrutura atômica',sym:'atomo',q:10,pct:100,status:'done',parent:'Química · Atomística',lessons:[{title:'Modelos atômicos',q:5},{title:'Partículas subatômicas',q:4},{title:'Números quânticos',q:5},{title:'Distribuição eletrônica',q:6}]},
+      {id:'tabela',title:'Tabela periódica',sym:'tabela',q:12,pct:80,status:'prog',parent:'Química · Atomística',lessons:[{title:'Organização da tabela',q:4},{title:'Famílias e períodos',q:5},{title:'Propriedades periódicas',q:6},{title:'Raio atômico',q:5}]},
+    ]},
+    {title:'Ligações',subs:[
+      {id:'ligacoes',title:'Ligações químicas',sym:'ligacoes',q:12,pct:42,status:'prog',parent:'Química · Ligações',lessons:[{title:'Ligação iônica',q:5},{title:'Ligação covalente',q:6},{title:'Ligação metálica',q:4},{title:'Forças intermoleculares',q:5}]},
+      {id:'geometria',title:'Geometria molecular',sym:'geometria',q:9,pct:0,status:'new',parent:'Química · Ligações',lessons:[{title:'Teoria VSEPR',q:4},{title:'Geometrias moleculares',q:5},{title:'Ângulos de ligação',q:4},{title:'Hibridização',q:5}]},
+      {id:'polaridade',title:'Polaridade',sym:'polaridade',q:8,locked:true},
+    ]},
+  ]},
+  log:{name:'Lógica',pct:15,pastel:'var(--pastel-log)',sections:[
+    {title:'Proposições',subs:[
+      {id:'conectivos',title:'Conectivos',sym:'conectivos',q:8,pct:50,status:'prog',parent:'Lógica · Proposições',lessons:[{title:'Negação',q:3},{title:'Conjunção',q:4},{title:'Disjunção',q:4},{title:'Condicional',q:5}]},
+      {id:'verdade',title:'Tabela-verdade',sym:'verdade',q:10,pct:0,status:'new',parent:'Lógica · Proposições',lessons:[{title:'Construção da tabela',q:4},{title:'Tautologias',q:4},{title:'Contradições',q:4},{title:'Contingências',q:4}]},
+    ]},
+    {title:'Inferência',subs:[
+      {id:'implicacao',title:'Implicação',sym:'implicacao',q:8,pct:0,status:'new',parent:'Lógica · Inferência',lessons:[{title:'Equivalências lógicas',q:4},{title:'Implicações lógicas',q:4},{title:'Leis de De Morgan',q:5},{title:'Contrapositiva',q:4}]},
+      {id:'argumentos',title:'Argumentos',sym:'argumentos',q:9,locked:true},
+    ]},
+  ]},
+};
+
+// ═══════════════════════════════════════════════════
+// 7. SUBJECTS
+// ═══════════════════════════════════════════════════
+const SUBJECTS = [
+  { id: 'mat', name: 'Matemática', sym: '∫', color: 'var(--pastel-mat)', pct: 8, topics: 16 },
+  { id: 'qui', name: 'Química', sym: '⬡', color: 'var(--pastel-qui)', pct: 60, topics: 5 },
+  { id: 'log', name: 'Lógica', sym: '∴', color: 'var(--pastel-log)', pct: 15, topics: 4 },
+];
+
+const WEEK = [['D',40],['S',72],['T',54],['Q',92],['Q',64],['S',28],['S',80]];
+
+// ═══════════════════════════════════════════════════
+// 8. LOGIN COMPONENTS
+// ═══════════════════════════════════════════════════
+const ORANGE_V = '#FF6000';
+const BLUE_V = '#1E40FF';
+const BLUE_D = '#0F28D4';
+const CARD_BG = `linear-gradient(160deg, ${BLUE_V} 0%, ${BLUE_D} 100%)`;
+const SCREEN_BG = '#F5F4F0';
+const NOISE_URL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E";
+
+function NoiseLayer() {
+  return (
+    <>
+      <svg style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }}>
+        <defs>
+          <filter id="dissolve-edge" x="-35%" y="-35%" width="170%" height="170%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="4" seed="9" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="36" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
+      <div style={{
+        position: 'absolute', inset: 0, borderRadius: 'inherit', pointerEvents: 'none',
+        backgroundImage: `url("${NOISE_URL}")`,
+        backgroundSize: '300px 300px', opacity: 0.14, mixBlendMode: 'overlay',
+      }} />
+    </>
+  );
+}
+
+function OrangeBlob({ style }) {
+  return (
+    <div style={{
+      borderRadius: '50%', position: 'absolute',
+      background: `radial-gradient(circle, ${ORANGE_V} 30%, rgba(255,96,0,0.88) 52%, rgba(255,96,0,0.42) 70%, transparent 86%)`,
+      filter: 'url(#dissolve-edge)',
+      ...style,
+    }} />
+  );
+}
+
+function LoginScreen({ onEnter }) {
+  const btnStyle = {
+    width: '100%', height: 52, border: 'none', cursor: 'pointer', borderRadius: 999,
+    fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 600, color: '#fff',
+  };
+  return (
+    <div style={{ position: 'absolute', inset: 0, background: SCREEN_BG, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto' }}>
+      <div className="login-layout" style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+        {/* ── MOBILE LAYOUT ── */}
+        <div className="mobile-only" style={{ flexDirection: 'column', width: '100%', height: '100%', maxHeight: 820, padding: '20px 14px' }}>
+          <div style={{ flex: '1 1 auto', minHeight: 360, borderRadius: 26, overflow: 'hidden', position: 'relative', background: CARD_BG }}>
+            <NoiseLayer />
+            <OrangeBlob style={{ top: -90, right: -90, width: 280, height: 280 }} />
+            <div style={{ position: 'absolute', bottom: 132, left: 28, width: 14, height: 14, borderRadius: '50%', background: 'rgba(255,255,255,0.3)' }} />
+            <div style={{ position: 'absolute', inset: 0, padding: '24px 28px 32px', display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontStyle: 'italic', fontSize: 26, letterSpacing: '-0.01em', color: '#fff' }}>Pythos</span>
+              <div style={{ flex: 1 }} />
+              <div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.72)', marginBottom: 13 }}>
+                  Bem-vindo ao <span style={{ fontWeight: 700 }}>Pythos</span>
+                </div>
+                <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 46, lineHeight: 1.04, color: '#fff', letterSpacing: '-0.02em' }}>Chegou a hora<br/>de pensar.</h1>
+              </div>
+            </div>
+          </div>
+          <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '18px 0 10px', gap: 12 }}>
+            <button onClick={onEnter} style={{ ...btnStyle, background: CARD_BG, boxShadow: `0 6px 22px -8px ${BLUE_V}cc` }}>Entrar</button>
+            <button onClick={onEnter} style={{ ...btnStyle, background: '#141414', boxShadow: '0 4px 16px -6px rgba(0,0,0,0.35)' }}>Criar conta</button>
+          </div>
+        </div>
+
+        {/* ── DESKTOP LAYOUT (side-by-side) ── */}
+        <div className="desktop-only" style={{ flexDirection: 'row', width: '100%', maxWidth: 920, gap: 56, padding: '40px 32px', alignItems: 'center' }}>
+          {/* Left: Blue card */}
+          <div style={{ flex: '0 0 380px', height: 520, borderRadius: 28, overflow: 'hidden', position: 'relative', background: CARD_BG, boxShadow: '0 24px 64px -16px rgba(30,64,255,0.3)' }}>
+            <NoiseLayer />
+            <OrangeBlob style={{ top: -80, right: -80, width: 260, height: 260 }} />
+            <div style={{ position: 'absolute', bottom: 120, left: 28, width: 14, height: 14, borderRadius: '50%', background: 'rgba(255,255,255,0.3)' }} />
+            <div style={{ position: 'absolute', inset: 0, padding: '28px 32px 36px', display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontStyle: 'italic', fontSize: 28, letterSpacing: '-0.01em', color: '#fff' }}>Pythos</span>
+              <div style={{ flex: 1 }} />
+              <div>
+                <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, fontWeight: 400, color: 'rgba(255,255,255,0.72)', marginBottom: 14, letterSpacing: '0.01em' }}>
+                  Bem-vindo ao <span style={{ fontWeight: 700 }}>Pythos</span>
+                </div>
+                <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 48, lineHeight: 1.04, color: '#fff', letterSpacing: '-0.02em' }}>Chegou a hora<br/>de pensar.</h1>
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Text + Buttons */}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minWidth: 0 }}>
+            <p style={{ margin: '0 0 36px', fontFamily: 'Inter, sans-serif', fontSize: 17, lineHeight: 1.7, color: '#6b6b63', maxWidth: 360, textAlign: 'center' }}>
+              Seu app de estudos no <span style={{ fontWeight: 700, color: '#1a1a17' }}>método espaçado</span>. <span style={{ fontWeight: 600, color: '#3a3a33' }}>Matérias organizadas</span>, <span style={{ fontWeight: 600, color: '#3a3a33' }}>questões direto ao ponto</span> e <span style={{ fontWeight: 700, color: '#1a1a17' }}>progresso que motiva</span>.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 340, width: '100%' }}>
+              <button onClick={onEnter} style={{ ...btnStyle, background: CARD_BG, boxShadow: `0 8px 28px -8px ${BLUE_V}aa` }}>Entrar</button>
+              <button onClick={onEnter} style={{ ...btnStyle, background: '#141414', boxShadow: '0 4px 16px -6px rgba(0,0,0,0.3)' }}>Criar conta</button>
+            </div>
+            <p style={{ margin: '24px 0 0', fontFamily: 'Inter, sans-serif', fontSize: 12.5, color: '#a8a89e', maxWidth: 340, textAlign: 'center' }}>
+              Ao continuar, você concorda com os <span style={{ textDecoration: 'underline', cursor: 'pointer', color: '#8a887f' }}>Termos de Uso</span>.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 9. HOME COMPONENTS
+// ═══════════════════════════════════════════════════
+function Wordmark({ size = 24, color = 'var(--text)' }) {
+  return (
+    <span style={{
+      fontFamily: 'var(--font-display)',
+      fontWeight: 900, fontStyle: 'italic', fontSize: size, letterSpacing: '-0.01em', color, lineHeight: 1,
+    }}>Pythos</span>
+  );
+}
+
+function Avatar({ size = 38, onClick }) {
+  return (
+    <div onClick={onClick} style={{
+      width: size, height: size, borderRadius: '50%', flex: '0 0 auto',
+      background: 'var(--surface-2)', border: '1px solid var(--border)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: 'var(--text)', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16,
+      cursor: onClick ? 'pointer' : 'default',
+    }}>P</div>
+  );
+}
+
+function SubjectTile({ s, height = 150, big = false }) {
+  return (
+    <div style={{
+      position: 'relative', overflow: 'hidden', height, borderRadius: 'var(--radius)',
+      background: s.color, padding: big ? 22 : 18, boxSizing: 'border-box',
+      display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+    }}>
+      <span style={{
+        position: 'absolute', right: big ? -6 : -14, bottom: big ? -40 : -34,
+        fontFamily: 'Georgia, "Times New Roman", serif', fontSize: big ? 200 : 150,
+        lineHeight: 1, color: 'rgba(20,20,20,0.12)', userSelect: 'none', pointerEvents: 'none',
+      }}>{s.sym}</span>
+      <div style={{ position: 'relative' }}>
+        <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: big ? 30 : 23, color: '#16160f', letterSpacing: '-0.01em' }}>{s.name}</div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: 'rgba(20,20,20,0.55)', marginTop: 4 }}>{s.topics} tópicos</div>
+      </div>
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ flex: 1 }}><ProgressBar value={s.pct} color="rgba(20,20,20,0.62)" track="rgba(20,20,20,0.12)" h={5} /></div>
+        <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700, color: 'rgba(20,20,20,0.7)' }}>{s.pct}%</span>
+      </div>
+    </div>
+  );
+}
+
+function ClickTile({ s, height, big, onClick }) {
+  return (
+    <button onClick={onClick} className="py-hover" style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: 'none', cursor: 'pointer', textAlign: 'left' }}>
+      <SubjectTile s={s} height={height} big={big} />
+    </button>
+  );
+}
+
+function HomeView({ onOpen, onProfile }) {
+  const [mat, qui, log] = SUBJECTS;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', animation: 'pyfade .28s ease' }}>
+      <div className="mobile-only" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 22px 0' }}>
+        <Wordmark />
+        <Avatar onClick={onProfile} />
+      </div>
+      <div style={{ padding: '22px 22px 20px' }}>
+        <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 32, color: 'var(--text)', letterSpacing: '-0.015em' }}>Olá, Pither</h1>
+        <p style={{ margin: '7px 0 0', fontFamily: 'Inter, sans-serif', fontSize: 15, color: 'var(--text-muted)' }}>O que vamos estudar hoje?</p>
+      </div>
+      <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px 22px' }}>
+        <ClickTile s={mat} height={168} big onClick={() => onOpen('mat')} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 14 }}>
+          <ClickTile s={qui} height={146} onClick={() => onOpen('qui')} />
+          <ClickTile s={log} height={146} onClick={() => onOpen('log')} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 10. DETAIL COMPONENTS
+// ═══════════════════════════════════════════════════
+function SubtopicCard({ sub, pastel, onClick }) {
+  const locked = sub.locked;
+  const ink = '#16160f';
+  return (
+    <button onClick={locked ? undefined : onClick} disabled={locked} className="py-hover" style={{
+      position: 'relative', overflow: 'hidden', width: '100%', textAlign: 'left',
+      display: 'flex', alignItems: 'center', gap: 12,
+      padding: '12px 16px', borderRadius: 14, border: 'none',
+      background: locked ? 'var(--surface-2)' : pastel,
+      cursor: locked ? 'default' : 'pointer', opacity: locked ? 0.6 : 1,
+    }}>
+      {!locked && (
+        <span style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', opacity: 0.32, pointerEvents: 'none', display: 'flex' }}>
+          <AbstractMark sym={sub.sym} s={42} />
+        </span>
+      )}
+      <div style={{ position: 'relative', flex: 1, minWidth: 0, paddingRight: 42 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 17, color: locked ? 'var(--text-muted)' : ink, letterSpacing: '-0.01em' }}>{sub.title}</span>
+          {locked && <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flex: '0 0 auto', color: 'var(--text-muted)', fontFamily: 'Inter, sans-serif', fontSize: 11.5, fontWeight: 500 }}><Ic.lock s={13} /> Bloqueado</span>}
+        </div>
+        {!locked && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 7 }}>
+            {sub.pct > 0
+              ? <><div style={{ flex: 1 }}><ProgressBar value={sub.pct} color="rgba(20,20,20,0.5)" track="rgba(20,20,20,0.12)" h={4} /></div>
+                  <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11.5, fontWeight: 700, color: 'rgba(20,20,20,0.58)' }}>{sub.pct}%</span></>
+              : <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 500, color: 'rgba(20,20,20,0.5)' }}>Não iniciado · {sub.q} questões</span>}
+          </div>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function LessonRow({ lesson, idx, pastel, onClick }) {
+  return (
+    <button onClick={onClick} className="py-hover" style={{
+      display: 'flex', alignItems: 'center', gap: 13, width: '100%', textAlign: 'left',
+      padding: '13px 15px', borderRadius: 13, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer',
+    }}>
+      <span style={{ flex: '0 0 auto', width: 34, height: 34, borderRadius: 10, background: pastel, color: '#16160f', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15 }}>{idx}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 600, color: 'var(--text)' }}>{lesson.title}</div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>{lesson.q} questões</div>
+      </div>
+      <span style={{ color: 'var(--text-muted)', display: 'flex' }}><Ic.chevR s={18} /></span>
+    </button>
+  );
+}
+
+function ShuffleIcon({ s = 22 }) {
+  return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7h3.5l9 10H20M3 17h3.5l3-3.3M14.5 8.7l1-1.7H20"/><path d="M17.5 4.5 20 7l-2.5 2.5M17.5 14.5 20 17l-2.5 2.5"/></svg>;
+}
+
+function InfoIcon({ s = 20 }) {
+  return <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.6" r="0.6" fill="currentColor" stroke="none"/></svg>;
+}
+
+function InfoSheet({ sub, pastel, onClose }) {
+  const info = INFO[sub.id] || { intro: 'Conteúdo em breve.', points: [], examples: [] };
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', animation: 'pyfade .2s ease' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: '24px 24px 0 0', maxHeight: '90%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ flex: '0 0 auto', padding: '10px 18px 12px' }}>
+          <div style={{ width: 40, height: 4, borderRadius: 4, background: 'var(--surface-2)', margin: '0 auto 14px' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ flex: '0 0 auto', width: 40, height: 40, borderRadius: 12, background: pastel, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Sym area={sub.sym} size={24} color="#16160f" /></span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11.5, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Entenda o tópico</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: 'var(--text)', letterSpacing: '-0.01em', lineHeight: 1.1 }}>{sub.title}</div>
+            </div>
+            <button onClick={onClose} style={{ flex: '0 0 auto', background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer', color: 'var(--text-muted)', width: 34, height: 34, borderRadius: '50%', fontSize: 18, lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+          </div>
+        </div>
+        <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '6px 18px 26px' }}>
+          <p style={{ margin: '0 0 22px', fontFamily: 'Inter, sans-serif', fontSize: 15, lineHeight: 1.55, color: 'var(--text)' }}>{info.intro}</p>
+          {info.points.length > 0 && <>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 2px 12px' }}>Conceitos principais</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+              {info.points.map((pt, i) => (
+                <div key={i} style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 13, padding: '13px 15px' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 4 }}>{pt[0]}</div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13.5, lineHeight: 1.5, color: 'var(--text-muted)' }}>{pt[1]}</div>
+                </div>
+              ))}
+            </div>
+          </>}
+          {info.examples.length > 0 && <>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 2px 12px' }}>Exemplos práticos</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {info.examples.map((ex, i) => (
+                <div key={i} style={{ background: 'var(--surface-2)', borderRadius: 13, padding: '14px 15px' }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 16, color: 'var(--text)', lineHeight: 1.3 }}>{ex[0]}</div>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 9 }}>
+                    <span style={{ flex: '0 0 auto', color: 'var(--accent-soft)', fontWeight: 700, fontFamily: 'Inter, sans-serif', fontSize: 14, lineHeight: 1.45 }}>→</span>
+                    <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14, lineHeight: 1.45, color: 'var(--text)' }}>{ex[1]}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubtopicView({ subject, sub, pastel, onBack, onOpenLesson, onRandom }) {
+  const [showInfo, setShowInfo] = useState(false);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', animation: 'pyfade .28s ease' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 18px 4px' }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)', display: 'flex', padding: 0 }}><Ic.back s={24} /></button>
+        <span style={{ flex: 1, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 500, color: 'var(--text-muted)' }}>{sub.parent}</span>
+      </div>
+      <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '6px 18px 22px' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, background: pastel, padding: '20px 20px 22px', marginBottom: 18 }}>
+          <span style={{ position: 'absolute', right: -10, bottom: -24, opacity: 0.22, display: 'flex', pointerEvents: 'none' }}><Sym area={sub.sym} size={130} /></span>
+          <button onClick={() => setShowInfo(true)} aria-label="Sobre o tópico" style={{ position: 'absolute', top: 16, right: 16, width: 38, height: 38, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', border: 'none', cursor: 'pointer', color: '#16160f', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2 }}><InfoIcon s={21} /></button>
+          <span style={{ position: 'relative', width: 50, height: 50, borderRadius: '50%', background: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}><Sym area={sub.sym} size={30} /></span>
+          <div style={{ position: 'relative', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 30, color: '#16160f', letterSpacing: '-0.015em' }}>{sub.title}</div>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 10, marginTop: 12, maxWidth: 220 }}>
+            <div style={{ flex: 1 }}><ProgressBar value={sub.pct} color="rgba(20,20,20,0.62)" track="rgba(20,20,20,0.14)" h={6} /></div>
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12.5, fontWeight: 700, color: 'rgba(20,20,20,0.72)' }}>{sub.pct}%</span>
+          </div>
+        </div>
+        <button onClick={onRandom} className="py-hover" style={{
+          display: 'flex', alignItems: 'center', gap: 14, width: '100%', textAlign: 'left',
+          padding: '15px 16px', borderRadius: 16, border: 'none', cursor: 'pointer',
+          background: 'var(--accent)', color: '#fff', marginBottom: 22,
+          boxShadow: '0 10px 26px -12px color-mix(in srgb, var(--accent) 75%, transparent)',
+        }}>
+          <span style={{ flex: '0 0 auto', width: 42, height: 42, borderRadius: 12, background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ShuffleIcon s={22} /></span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 15.5, fontWeight: 700 }}>Questões aleatórias</span>
+            <span style={{ display: 'block', fontFamily: 'Inter, sans-serif', fontSize: 12.5, fontWeight: 400, color: 'rgba(255,255,255,0.78)', marginTop: 1 }}>Assuntos de {sub.title} misturados</span>
+          </span>
+          <span style={{ display: 'flex', opacity: 0.85 }}><Ic.chevR s={20} /></span>
+        </button>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 2px 12px' }}>Assuntos</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {sub.lessons && sub.lessons.map((l, i) => <LessonRow key={i} lesson={l} idx={i+1} pastel={pastel} onClick={() => onOpenLesson(l)} />)}
+        </div>
+      </div>
+      {showInfo && <InfoSheet sub={sub} pastel={pastel} onClose={() => setShowInfo(false)} />}
+    </div>
+  );
+}
+
+function DetailView({ subject, onBack, onOpenSubtopic }) {
+  const d = CURRICULUM[subject];
+  const [closed, setClosed] = useState({});
+  const toggle = (i) => setClosed((c) => ({ ...c, [i]: !c[i] }));
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', animation: 'pyfade .28s ease' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 18px 16px' }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)', display: 'flex', padding: 0 }}><Ic.back s={24} /></button>
+        <h1 style={{ margin: 0, flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: 'var(--text)', letterSpacing: '-0.01em' }}>{d.name}</h1>
+        <Chip bg={d.pastel} color="#16160f"><span style={{ fontWeight: 700 }}>{d.pct}%</span> completo</Chip>
+      </div>
+      <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '4px 18px 20px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {d.sections.map((sec, i) => {
+          const isClosed = !!closed[i];
+          return (
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button onClick={() => toggle(i)} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 4px', width: '100%', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <span style={{ color: 'var(--text-muted)', display: 'flex', transform: isClosed ? 'rotate(-90deg)' : 'none', transition: 'transform .22s' }}><Ic.chevD s={20} /></span>
+                <h3 style={{ margin: 0, flex: 1, textAlign: 'left', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 21, color: 'var(--text)', letterSpacing: '-0.01em' }}>{sec.title}</h3>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 12.5, fontWeight: 500, color: 'var(--text-muted)' }}>{sec.subs.length} tópicos</span>
+              </button>
+              {!isClosed && sec.subs.map((sub) => (
+                <SubtopicCard key={sub.id} sub={sub} pastel={d.pastel} onClick={() => onOpenSubtopic(sub.id)} />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 11. QUIZ COMPONENTS
+// ═══════════════════════════════════════════════════
+function Expr({ val, style }) {
+  const parts = [];
+  let remaining = val, key = 0;
+  const re = /\^(\d+)/;
+  while (remaining.length) {
+    const m = remaining.match(re);
+    if (!m) { parts.push(<span key={key++}>{remaining}</span>); break; }
+    parts.push(<span key={key++}>{remaining.slice(0, m.index)}</span>);
+    parts.push(<sup key={key++} style={{ fontSize: '0.72em' }}>{m[1]}</sup>);
+    remaining = remaining.slice(m.index + m[0].length);
+  }
+  return <span style={style}>{parts}</span>;
+}
+
+function norm(s) {
+  return (s||'').replace(/\s+/g,'').replace(/[×∙]/g,'*').replace(/÷/g,'/').replace(/²/g,'^2').replace(/³/g,'^3').toLowerCase();
+}
+
+const KEYS = [
+  ['x','^','√(','a/b','( )'],
+  ['7','8','9','÷','π'],
+  ['4','5','6','×','%'],
+  ['1','2','3','−','^'],
+  ['0','.','⌫','+','='],
+];
+
+function CalcKeypad({ val, onChange, onDone }) {
+  const handleKey = (k) => {
+    if (k==='⌫') { onChange(val.slice(0,-1)); return; }
+    if (k==='=') { onDone(); return; }
+    if (k==='a/b') { onChange(val+'/'); return; }
+    if (k==='( )') { onChange(val+(val.slice(-1)==='(' ? ')' : '(')); return; }
+    if (k==='π') { onChange(val+'π'); return; }
+    onChange(val+k);
+  };
+  const keyStyle = (k) => ({
+    flex: 1, height: 44, border: 'none', cursor: 'pointer', borderRadius: 9, fontFamily: 'Inter, sans-serif',
+    fontSize: k.length > 1 ? 13 : 17, fontWeight: 600, transition: 'background .1s',
+    background: ['÷','×','−','+','^'].includes(k) ? 'color-mix(in srgb, var(--accent) 18%, var(--surface))' : k==='=' ? 'var(--accent)' : k==='⌫' ? 'var(--surface-2)' : 'var(--surface)',
+    color: k==='=' ? '#fff' : 'var(--text)',
+  });
+  return (
+    <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'var(--bg)', borderTop: '1px solid var(--border)', padding: '10px 12px 18px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <span style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>Calculadora</span>
+        <button onClick={onDone} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter', fontSize: 13.5, fontWeight: 700, padding: 0 }}>Pronto ✓</button>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+        {KEYS.map((row, i) => (
+          <div key={i} style={{ display: 'flex', gap: 7 }}>
+            {row.map((k) => <button key={k} onClick={() => handleKey(k)} style={keyStyle(k)}>{k}</button>)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function QuestionMenu({ d, onClose }) {
+  const items = Array.from({ length: d.total }, (_, i) => i + 1);
+  return (
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 50, background: 'rgba(0,0,0,0.55)', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: 'var(--bg)', borderRadius: '24px 24px 0 0', maxHeight: '78%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ padding: '10px 18px 4px', flex: '0 0 auto', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ width: 40, height: 4, borderRadius: 4, background: 'var(--surface-2)', margin: '0 auto 14px' }} />
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 22, color: 'var(--text)' }}>Questões de {d.tag}</div>
+          <div style={{ fontFamily: 'Inter', fontSize: 13, color: 'var(--text-muted)', marginTop: 2, marginBottom: 10 }}>{d.tag} · {d.total} questões</div>
+        </div>
+        <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '16px 18px 24px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+            {items.map((n) => {
+              const done = n < d.current;
+              const curr = n === d.current;
+              return (
+                <button key={n} onClick={onClose} style={{
+                  height: 50, borderRadius: 12, border: curr ? '2px solid var(--accent)' : '1px solid var(--border)', cursor: 'pointer', fontFamily: 'Inter', fontWeight: 700, fontSize: 15,
+                  background: done ? 'rgba(78,203,113,0.12)' : curr ? 'color-mix(in srgb,var(--accent) 12%,var(--surface))' : 'var(--surface)',
+                  color: done ? '#4ecb71' : curr ? 'var(--accent)' : 'var(--text)',
+                }}>{n}</button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HintCard({ text }) {
+  return (
+    <div style={{ display: 'flex', gap: 11, padding: '12px 14px', borderRadius: 12, background: 'color-mix(in srgb, #E68A2B 14%, var(--surface))', border: '1px solid rgba(230,138,43,0.3)', marginTop: 12 }}>
+      <span style={{ fontSize: 18, lineHeight: 1.4, flex: '0 0 auto' }}>💡</span>
+      <p style={{ margin: 0, fontFamily: 'Inter', fontSize: 13.5, lineHeight: 1.5, color: 'var(--text)' }}>{text}</p>
+    </div>
+  );
+}
+
+function QuizView({ subject, meta, onClose, onNext }) {
+  const d = QUESTIONS[subject];
+  const m = meta || {};
+  const chipLabel = m.random ? 'Aleatória' : (m.label || d.tag);
+  const eyebrow = m.random ? `${d.tag} · Aleatória` : (m.label ? `${m.parent || d.eyebrow.split(' · ')[0]} · ${m.label}` : d.eyebrow);
+
+  const [typedVal, setTypedVal] = useState('');
+  const [showKeypad, setShowKeypad] = useState(false);
+  const [wrongCount, setWrongCount] = useState(0);
+  const [status, setStatus] = useState('idle');
+  const [pickedAlt, setPickedAlt] = useState(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const correctIdx = d.options.findIndex((o) => o.correct);
+  const showHint = wrongCount >= 1;
+  const showAlts = !d.typed || wrongCount >= 2;
+
+  const submitTyped = () => {
+    if (!typedVal.trim()) return;
+    setShowKeypad(false);
+    if (norm(typedVal) === norm(d.answer)) {
+      setStatus('correct');
+    } else {
+      setWrongCount((c) => c + 1);
+      setStatus('wrong');
+      setTimeout(() => setStatus('idle'), 900);
+    }
+  };
+
+  const pickAlt = (i) => {
+    if (status === 'correct') return;
+    setPickedAlt(i);
+    if (i === correctIdx) { setStatus('correct'); }
+    else { setWrongCount((c) => c + 1); setStatus('wrong'); setTimeout(() => { setStatus('idle'); setPickedAlt(null); }, 900); }
+  };
+
+  const correct = status === 'correct';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', position: 'relative' }}>
+      <div style={{ flex: '0 0 auto', padding: '8px 18px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 22, lineHeight: 1, padding: 0 }}>✕</button>
+          <Chip bg={d.pastel} color="#16160f">{chipLabel}</Chip>
+          <span style={{ fontFamily: 'Inter', fontSize: 13, fontWeight: 600, color: 'var(--text-muted)' }}>Questão {d.current} de {d.total}</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+          <div style={{ flex: 1 }}><ProgressBar value={Math.round((d.current/d.total)*100)} color="var(--accent)" track="var(--surface-2)" h={6} /></div>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, color: 'var(--accent-soft)', fontFamily: 'Inter', fontSize: 12, fontWeight: 700 }}><Ic.bolt s={14} />+{d.value} XP</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 10, background: 'var(--surface)', border: '1px solid var(--border)', marginBottom: 4 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.6" r="0.6" fill="var(--text-muted)" stroke="none"/></svg>
+          <span style={{ fontFamily: 'Inter', fontSize: 12.5, fontWeight: 500, color: 'var(--text-muted)' }}>{d.instr}</span>
+        </div>
+      </div>
+
+      <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: showKeypad ? 'hidden' : 'auto', padding: '12px 18px 0' }}>
+        <div style={{ position: 'relative', overflow: 'hidden', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 18, padding: '22px 20px', marginBottom: 16 }}>
+          <span style={{ position: 'absolute', right: -10, bottom: -36, fontFamily: 'Georgia, serif', fontSize: 130, lineHeight: 1, color: d.pastel, opacity: 0.1, userSelect: 'none', pointerEvents: 'none' }}>{d.sym}</span>
+          <div style={{ position: 'relative', fontFamily: 'Inter', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 10 }}>{eyebrow}</div>
+          <div style={{ position: 'relative', fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 24, lineHeight: 1.25, color: 'var(--text)' }}>{d.question}</div>
+        </div>
+
+        {d.typed && !correct && (
+          <button onClick={() => setShowKeypad(true)} style={{
+            display: 'flex', alignItems: 'center', gap: 12, width: '100%', textAlign: 'left',
+            padding: '14px 16px', borderRadius: 14, border: `2px solid ${status==='wrong' ? '#e84949' : showKeypad ? 'var(--accent)' : 'var(--border)'}`,
+            background: 'var(--surface)', cursor: 'pointer', marginBottom: 12, transition: 'border-color .15s',
+          }}>
+            {typedVal
+              ? <Expr val={typedVal} style={{ flex: 1, fontFamily: 'Georgia, serif', fontSize: 20, fontWeight: 600, color: status==='wrong' ? '#e84949' : 'var(--text)' }} />
+              : <span style={{ flex: 1, fontFamily: 'Inter', fontSize: 15, color: 'var(--text-muted)' }}>Digite sua resposta…</span>}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.7" strokeLinecap="round"><rect x="3" y="9" width="18" height="13" rx="2"/><path d="M7 9V7a5 5 0 0 1 10 0v2"/><circle cx="12" cy="15" r="1.5" fill="var(--text-muted)"/></svg>
+          </button>
+        )}
+
+        {d.typed && correct && typedVal && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: 14, background: 'rgba(78,203,113,0.14)', border: '1.5px solid #4ecb71', marginBottom: 12 }}>
+            <Ic.check s={20} /><Expr val={typedVal} style={{ fontFamily: 'Georgia, serif', fontSize: 19, fontWeight: 600, color: '#4ecb71' }} />
+          </div>
+        )}
+
+        {showHint && !correct && <HintCard text={d.hint} />}
+
+        {(showAlts || (d.typed && wrongCount >= 2)) && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 14 }}>
+            {!d.typed && <div style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 2 }}>Escolha a alternativa</div>}
+            {d.typed && wrongCount >= 2 && <div style={{ fontFamily: 'Inter', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 2 }}>Ou escolha uma alternativa</div>}
+            {d.options.map((o, i) => {
+              const isCorrect = i === correctIdx;
+              const isWrong = pickedAlt === i && !isCorrect;
+              const showRight = correct && isCorrect;
+              const bg = showRight ? 'rgba(78,203,113,0.14)' : isWrong ? 'rgba(232,73,73,0.12)' : 'var(--surface)';
+              const bd = showRight ? '1.5px solid #4ecb71' : isWrong ? '1.5px solid #e84949' : '1.5px solid var(--border)';
+              const badgeBg = showRight ? '#4ecb71' : isWrong ? '#e84949' : 'var(--surface-2)';
+              const badgeC = showRight ? '#0c2a16' : isWrong ? '#2a0c0c' : 'var(--text-muted)';
+              return (
+                <button key={i} onClick={() => pickAlt(i)} disabled={correct} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 15px', borderRadius: 13, background: bg, border: bd, cursor: correct ? 'default' : 'pointer', textAlign: 'left', transition: 'background .15s' }}>
+                  <span style={{ flex: '0 0 auto', width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', background: badgeBg, color: badgeC, fontFamily: 'Inter', fontSize: 13, fontWeight: 700 }}>{o.l}</span>
+                  <span style={{ flex: 1, fontFamily: 'Inter', fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>{o.t}</span>
+                  {showRight && <Ic.check s={18} />}
+                  {isWrong && <span style={{ color: '#e84949', fontWeight: 700 }}>✕</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
+        <div style={{ height: showKeypad ? 310 : 80 }} />
+      </div>
+
+      <div style={{ flex: '0 0 auto', padding: '10px 18px 16px', display: 'flex', alignItems: 'center', gap: 11 }}>
+        <button onClick={() => setShowMenu(true)} style={{ width: 54, height: 54, flex: '0 0 auto', border: '1px solid var(--border)', cursor: 'pointer', borderRadius: '50%', background: 'var(--surface)', color: 'var(--text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }} aria-label="Lista de questões">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="5" cy="6" r="0.5"/><circle cx="5" cy="12" r="0.5"/><circle cx="5" cy="18" r="0.5"/><path d="M10 6h9M10 12h9M10 18h9"/></svg>
+        </button>
+        {d.typed && !correct && !showKeypad && (
+          <button onClick={submitTyped} disabled={!typedVal.trim()} style={{ flex: 1, height: 54, border: 'none', cursor: typedVal.trim() ? 'pointer' : 'default', borderRadius: 999, background: typedVal.trim() ? 'var(--accent)' : 'var(--surface-2)', color: typedVal.trim() ? '#fff' : 'var(--text-muted)', fontFamily: 'Inter', fontSize: 16, fontWeight: 600, transition: 'background .2s' }}>Responder</button>
+        )}
+        {(!d.typed || correct) && (
+          <button onClick={onNext} style={{ flex: 1, height: 54, border: 'none', cursor: 'pointer', borderRadius: 999, background: correct ? 'var(--accent)' : 'var(--surface-2)', color: correct ? '#fff' : 'var(--text-muted)', fontFamily: 'Inter', fontSize: 16, fontWeight: 600, boxShadow: correct ? '0 10px 26px -10px color-mix(in srgb,var(--accent) 70%,transparent)' : 'none', transition: 'background .2s' }}>Próxima questão</button>
+        )}
+      </div>
+
+      {showKeypad && <CalcKeypad val={typedVal} onChange={setTypedVal} onDone={() => setShowKeypad(false)} />}
+      {showMenu && <QuestionMenu d={d} onClose={() => setShowMenu(false)} />}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 12. PROGRESS / SETTINGS COMPONENTS
+// ═══════════════════════════════════════════════════
+function ProgressView() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', animation: 'pyfade .28s ease' }}>
+      <div style={{ padding: '8px 22px 14px' }}>
+        <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: 'var(--text)', letterSpacing: '-0.015em' }}>Seu Progresso</h1>
+      </div>
+      <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px 16px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', gap: 11, marginBottom: 24 }}>
+          <Metric icon={Ic.bolt} value="1.240" label="XP total" />
+          <Metric icon={Ic.target} value="186" label="Questões" />
+          <Metric icon={Ic.flame} value="7" label="Dias seguidos" />
+        </div>
+        <Label>Por matéria</Label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 26 }}>
+          <SubjProgress name="Matemática" pct={34} color="var(--pastel-mat)" />
+          <SubjProgress name="Química" pct={60} color="var(--pastel-qui)" />
+          <SubjProgress name="Lógica" pct={15} color="var(--pastel-log)" />
+        </div>
+        <Label>Atividade da semana</Label>
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8, height: 96, marginBottom: 24, padding: '0 2px' }}>
+          {WEEK.map(([dl, h], i) => (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+              <div style={{ width: '100%', height: 78, display: 'flex', alignItems: 'flex-end' }}>
+                <div style={{ width: '100%', height: `${h}%`, borderRadius: 6, background: i === 3 ? 'var(--accent)' : 'color-mix(in srgb, var(--accent) 45%, var(--surface))' }} />
+              </div>
+              <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 11.5, fontWeight: 500, color: 'var(--text-muted)' }}>{dl}</span>
+            </div>
+          ))}
+        </div>
+        <Label>Conquistas</Label>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <Badge icon={Ic.flame} /><Badge icon={Ic.bolt} /><Badge icon={Ic.trophy} /><Badge icon={Ic.target} locked /><Badge icon={Ic.trophy} locked />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToggleRow({ icon: Icon, label, on, onClick, last }) {
+  return (
+    <button onClick={onClick} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '0 16px', height: 54, width: '100%', border: 'none', background: 'none', cursor: 'pointer', borderBottom: last ? 'none' : '1px solid var(--border)' }}>
+      <span style={{ color: 'var(--text-muted)', display: 'flex', flex: '0 0 auto' }}><Icon s={20} /></span>
+      <span style={{ flex: 1, textAlign: 'left', fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>{label}</span>
+      <Toggle on={on} />
+    </button>
+  );
+}
+
+function SettingsView({ dark, onToggleDark, onLogout }) {
+  const [notif, setNotif] = useState(true);
+  const [sound, setSound] = useState(false);
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', animation: 'pyfade .28s ease' }}>
+      <div style={{ padding: '8px 22px 16px' }}>
+        <h1 style={{ margin: 0, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 28, color: 'var(--text)', letterSpacing: '-0.015em' }}>Configurações</h1>
+      </div>
+      <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px 14px', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 15, marginBottom: 24 }}>
+          <div style={{ width: 58, height: 58, borderRadius: '50%', flex: '0 0 auto', background: 'var(--pastel-mat)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: '#16160f' }}>P</div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 21, color: 'var(--text)' }}>Pither</div>
+            <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13.5, color: 'var(--text-muted)' }}>pither@pythos.app</div>
+          </div>
+          <button style={{ height: 36, padding: '0 16px', borderRadius: 9, cursor: 'pointer', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', fontFamily: 'Inter, sans-serif', fontSize: 13.5, fontWeight: 600 }}>Editar perfil</button>
+        </div>
+        <Label>Aplicativo</Label>
+        <div style={{ marginBottom: 24 }}>
+          <Group>
+            <ToggleRow icon={Ic.moon} label="Modo noturno" on={dark} onClick={onToggleDark} />
+            <ToggleRow icon={Ic.bell} label="Notificações" on={notif} onClick={() => setNotif((v) => !v)} />
+            <SetRow icon={Ic.globe} label="Idioma" value="Português" />
+            <ToggleRow icon={Ic.sound} label="Sons e vibrações" on={sound} onClick={() => setSound((v) => !v)} last />
+          </Group>
+        </div>
+        <Label>Conta</Label>
+        <Group>
+          <SetRow icon={Ic.key} label="Alterar senha" />
+          <SetRow icon={Ic.shield} label="Privacidade" />
+          <SetRow icon={Ic.download} label="Exportar dados" />
+          <button onClick={onLogout} style={{ width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}><SetRow icon={Ic.logout} label="Sair da conta" danger last /></button>
+        </Group>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 13. PROFILE COMPONENT
+// ═══════════════════════════════════════════════════
+function ProfileView({ onBack, onLogout }) {
+  const [name, setName] = useState('Pither');
+  const [email, setEmail] = useState('pither@pythos.app');
+  const [editing, setEditing] = useState(null);
+  const plans = [{id:'free',label:'Free',desc:'Acesso a conteúdos básicos',price:'0 PTC/mês'},{id:'alpha',label:'Alpha',desc:'Conteúdo expandido + sem anúncios',price:'6,70 PTC/mês'},{id:'sigma',label:'Sigma',desc:'Conteúdo completo + recursos exclusivos',price:'67 PTC/mês'},{id:'omega',label:'Omega',desc:'Melhor custo-benefício',price:'677 PTC/ano'}];
+  const [plan, setPlan] = useState('free');
+  const inputStyle = { width: '100%', background: 'var(--surface)', border: '1.5px solid var(--accent)', borderRadius: 12, padding: '12px 14px', fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: 'var(--text)', outline: 'none', boxSizing: 'border-box' };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', animation: 'pyfade .28s ease' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 18px 16px' }}>
+        <button onClick={onBack} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)', display: 'flex', padding: 0 }}><Ic.back s={24} /></button>
+        <h1 style={{ margin: 0, flex: 1, fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: 'var(--text)', letterSpacing: '-0.01em' }}>Minha conta</h1>
+      </div>
+      <div className="py-scroll" style={{ flex: '1 1 auto', minHeight: 0, overflowY: 'auto', padding: '0 22px 24px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 28 }}>
+          <div style={{ width: 86, height: 86, borderRadius: '50%', background: 'var(--pastel-mat)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 40, color: '#16160f', marginBottom: 12, border: '3px solid var(--accent)' }}>{name[0]||'P'}</div>
+          <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter, sans-serif', fontSize: 13.5, fontWeight: 600, padding: 0 }}>Alterar foto de perfil</button>
+        </div>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>Nome</div>
+          {editing==='name'
+            ? <input value={name} onChange={(e)=>setName(e.target.value)} onBlur={()=>setEditing(null)} autoFocus style={inputStyle}/>
+            : <button onClick={()=>setEditing('name')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '13px 14px', borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>{name}</span>
+                <span style={{ color: 'var(--text-muted)', display: 'flex' }}><Ic.chevR s={18} /></span>
+              </button>}
+        </div>
+        <div style={{ marginBottom: 28 }}>
+          <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 8 }}>E-mail</div>
+          {editing==='email'
+            ? <input value={email} onChange={(e)=>setEmail(e.target.value)} onBlur={()=>setEditing(null)} autoFocus type="email" style={inputStyle}/>
+            : <button onClick={()=>setEditing('email')} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', padding: '13px 14px', borderRadius: 12, background: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer' }}>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, color: 'var(--text)' }}>{email}</span>
+                <span style={{ color: 'var(--text-muted)', display: 'flex' }}><Ic.chevR s={18} /></span>
+              </button>}
+        </div>
+        <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: 12 }}>Assinatura</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
+          {plans.map((p) => {
+            const on = plan === p.id;
+            return (
+              <button key={p.id} onClick={() => setPlan(p.id)} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '14px 16px', borderRadius: 14, cursor: 'pointer', textAlign: 'left', background: on ? 'color-mix(in srgb, var(--accent) 12%, var(--surface))' : 'var(--surface)', border: on ? '2px solid var(--accent)' : '1px solid var(--border)' }}>
+                <div style={{ flex: '0 0 auto', width: 22, height: 22, borderRadius: '50%', border: on ? '6px solid var(--accent)' : '2px solid var(--border)', background: 'none' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: 'var(--text)' }}>{p.label}</div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 12.5, color: 'var(--text-muted)', marginTop: 2 }}>{p.desc}</div>
+                </div>
+                <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 700, color: on ? 'var(--accent)' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>{p.price}</span>
+              </button>
+            );
+          })}
+        </div>
+        <button style={{ width: '100%', height: 52, border: 'none', cursor: 'pointer', borderRadius: 999, background: 'var(--accent)', color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 600, boxShadow: '0 10px 26px -12px color-mix(in srgb,var(--accent) 70%,transparent)' }}>Salvar alterações</button>
+        <button onClick={onLogout} style={{ width: '100%', height: 48, border: 'none', cursor: 'pointer', borderRadius: 999, background: '#E03B3B', color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 600, marginTop: 16, boxShadow: '0 8px 22px -10px rgba(224,59,59,0.45)', transition: 'filter .15s' }} onMouseEnter={(e) => e.currentTarget.style.filter = 'brightness(1.1)'} onMouseLeave={(e) => e.currentTarget.style.filter = 'none'}>Sair</button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 14. SIDEBAR (desktop)
+// ═══════════════════════════════════════════════════
+function Sidebar({ active, onNav, dark, onToggleDark, onProfile, onLogout, open, onToggle }) {
+  const items = [['home','Início',Ic.home],['progress','Progresso',Ic.chart],['settings','Ajustes',Ic.gear]];
+  const W_OPEN = 260, W_CLOSED = 64;
+  const w = open ? W_OPEN : W_CLOSED;
+
+  return (
+    <div onClick={onToggle} style={{
+      width: w, height: '100vh', position: 'fixed', left: 0, top: 0,
+      background: 'var(--surface)', borderRight: '1px solid var(--border)',
+      display: 'flex', flexDirection: 'column', padding: open ? '24px 16px 20px' : '24px 10px 20px',
+      zIndex: 40, transition: 'width .25s cubic-bezier(.4,0,.2,1), padding .25s cubic-bezier(.4,0,.2,1)',
+      overflow: 'hidden', cursor: 'pointer',
+    }}>
+      {/* Toggle + Wordmark */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 32, minHeight: 36 }}>
+        <button onClick={(e) => { e.stopPropagation(); onToggle(); }} title={open ? 'Recolher menu' : 'Expandir menu'} style={{
+          flex: '0 0 auto', width: 38, height: 38, borderRadius: 10, border: 'none',
+          cursor: 'pointer', background: 'transparent', color: 'var(--text-muted)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'background .15s, color .15s',
+        }} onMouseEnter={(e) => { e.currentTarget.style.background = 'color-mix(in srgb, var(--accent) 12%, var(--surface))'; e.currentTarget.style.color = 'var(--accent)'; }}
+           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+            <path d="M3 5h14M3 10h14M3 15h14" />
+          </svg>
+        </button>
+        {open && <Wordmark size={24} />}
+      </div>
+
+      {/* Nav items */}
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {items.map(([id, label, Icon]) => {
+          const on = id === active;
+          return (
+            <button key={id} onClick={(e) => { e.stopPropagation(); onNav(id); }} title={!open ? label : undefined} style={{
+              display: 'flex', alignItems: 'center', gap: 12,
+              padding: open ? '11px 14px' : '11px 0',
+              justifyContent: open ? 'flex-start' : 'center',
+              borderRadius: 12, border: 'none', cursor: 'pointer',
+              background: on ? 'color-mix(in srgb, var(--accent) 12%, var(--surface))' : 'transparent',
+              color: on ? 'var(--accent)' : 'var(--text-muted)',
+              transition: 'background .15s, padding .25s',
+              whiteSpace: 'nowrap', overflow: 'hidden',
+            }}>
+              <Icon s={21} w={on ? 2.1 : 1.8} />
+              {open && <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 14.5, fontWeight: on ? 600 : 500, color: on ? 'var(--text)' : 'var(--text-muted)' }}>{label}</span>}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Bottom: dark toggle + user */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Dark mode */}
+        <button onClick={(e) => { e.stopPropagation(); onToggleDark(); }} title={!open ? 'Modo noturno' : undefined} style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          padding: open ? '10px 14px' : '10px 0',
+          justifyContent: open ? 'flex-start' : 'center',
+          borderRadius: 12, border: 'none', cursor: 'pointer', background: 'transparent',
+          color: 'var(--text-muted)', whiteSpace: 'nowrap', overflow: 'hidden',
+          transition: 'padding .25s',
+        }}>
+          <Ic.moon s={20} />
+          {open && <>
+            <span style={{ flex: 1, textAlign: 'left', fontFamily: 'Inter, sans-serif', fontSize: 13.5, fontWeight: 500 }}>Modo noturno</span>
+            <Toggle on={dark} />
+          </>}
+        </button>
+
+        {/* User area */}
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          {open ? (
+            <>
+              <button onClick={(e) => { e.stopPropagation(); onProfile(); }} style={{
+                display: 'flex', alignItems: 'center', gap: 10, flex: 1, minWidth: 0, padding: '6px 6px',
+                borderRadius: 12, border: 'none', cursor: 'pointer', background: 'transparent',
+                overflow: 'hidden', whiteSpace: 'nowrap',
+              }}>
+                <div style={{
+                  width: 36, height: 36, borderRadius: '50%', background: 'var(--pastel-mat)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: '#16160f', flex: '0 0 auto',
+                }}>P</div>
+                <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 13.5, fontWeight: 600, color: 'var(--text)' }}>Pither</div>
+                  <div style={{ fontFamily: 'Inter, sans-serif', fontSize: 11.5, color: 'var(--text-muted)' }}>pither@pythos.app</div>
+                </div>
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); onLogout(); }} title="Sair da conta" style={{
+                flex: '0 0 auto', width: 34, height: 34, borderRadius: 10, border: 'none',
+                cursor: 'pointer', background: 'transparent', color: 'var(--text-muted)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                transition: 'color .15s, background .15s',
+              }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(224,81,125,0.12)'; e.currentTarget.style.color = '#E0517D'; }}
+                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}>
+                <Ic.logout s={16} />
+              </button>
+            </>
+          ) : (
+            <button onClick={(e) => { e.stopPropagation(); onProfile(); }} title="Minha conta" style={{
+              width: '100%', display: 'flex', justifyContent: 'center', padding: '6px 0',
+              border: 'none', cursor: 'pointer', background: 'transparent',
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: '50%', background: 'var(--pastel-mat)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: '#16160f',
+              }}>P</div>
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 15. BOTTOM NAV (mobile)
+// ═══════════════════════════════════════════════════
+function MobileBottomNav({ active, onNav }) {
+  const items = [['home','Início',Ic.home],['progress','Progresso',Ic.chart],['settings','Ajustes',Ic.gear]];
+  return (
+    <div className="mobile-only" style={{
+      flex: '0 0 auto', justifyContent: 'space-around', alignItems: 'center',
+      height: 66, paddingBottom: 6, borderTop: '1px solid var(--border)', background: 'var(--bg)',
+    }}>
+      {items.map(([id, label, Icon]) => {
+        const on = id === active;
+        return (
+          <button key={id} onClick={() => onNav(id)} style={{
+            background: 'none', border: 'none', cursor: 'pointer',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+            color: on ? 'var(--accent)' : 'var(--text-muted)', padding: '4px 12px',
+          }}>
+            <Icon s={23} w={on ? 2.1 : 1.8} />
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: 10.5, fontWeight: on ? 600 : 500 }}>{label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 16. MAIN APP
+// ═══════════════════════════════════════════════════
+function appTokens(dark) {
+  const themed = dark ? {
+    '--bg':'#111111','--surface':'#1A1A1A','--surface-2':'#262626',
+    '--text':'#F5F5F0','--text-muted':'#888888','--border':'rgba(255,255,255,0.09)',
+  } : {
+    '--bg':'#F4F3EE','--surface':'#FFFFFF','--surface-2':'#ECEBE5',
+    '--text':'#1A1A17','--text-muted':'#8A887F','--border':'rgba(0,0,0,0.10)',
+  };
+  return {
+    '--accent':'#1E40FF',
+    '--accent-soft': dark ? 'color-mix(in srgb, #1E40FF 52%, #ffffff)' : '#1E40FF',
+    '--font-display': "'Playfair Display', Georgia, serif",
+    '--radius':'24px',
+    '--pastel-mat':'#A8C5F5','--pastel-qui':'#A8E6CF','--pastel-log':'#C9B8F5',
+    ...themed,
+  };
+}
+
+function App() {
+  const [route, setRoute] = useState('login');
+  const [subject, setSubject] = useState('mat');
+  const [subId, setSubId] = useState(null);
+  const [meta, setMeta] = useState(null);
+  const [dark, setDark] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  useEffect(() => { localStorage.setItem('pythos_route', route); }, [route]);
+
+  const subjData = CURRICULUM[subject];
+  const subData = subjData && subId
+    ? subjData.sections.flatMap((s) => s.subs).find((x) => x.id === subId)
+    : null;
+
+  const isLogin = route === 'login';
+  const isQuiz = route === 'question';
+  const showNav = !isLogin;
+  const activeNav = ['home','progress','settings'].includes(route) ? route : 'home';
+
+  let screen;
+  if (route === 'login') {
+    screen = <LoginScreen onEnter={() => setRoute('home')} />;
+  } else if (route === 'home') {
+    screen = <HomeView onOpen={(s) => { setSubject(s); setRoute('detail'); }} onProfile={() => setRoute('profile')} />;
+  } else if (route === 'detail') {
+    screen = <DetailView subject={subject} onBack={() => setRoute('home')} onOpenSubtopic={(id) => { setSubId(id); setRoute('subtopic'); }} />;
+  } else if (route === 'subtopic' && subData) {
+    screen = <SubtopicView subject={subject} sub={subData} pastel={subjData.pastel}
+      onBack={() => setRoute('detail')}
+      onRandom={() => { setMeta({ random: true, parent: subData.parent }); setRoute('question'); }}
+      onOpenLesson={(l) => { setMeta({ label: l.title, parent: subData.parent }); setRoute('question'); }} />;
+  } else if (route === 'question') {
+    screen = <QuizView subject={subject} meta={meta} onClose={() => setRoute(subData ? 'subtopic' : 'detail')} onNext={() => setRoute(subData ? 'subtopic' : 'detail')} />;
+  } else if (route === 'profile') {
+    screen = <ProfileView onBack={() => setRoute('home')} onLogout={() => setRoute('login')} />;
+  } else if (route === 'progress') {
+    screen = <ProgressView />;
+  } else if (route === 'settings') {
+    screen = <SettingsView dark={dark} onToggleDark={() => setDark((v) => !v)} onLogout={() => setRoute('login')} />;
+  } else {
+    screen = <HomeView onOpen={(s) => { setSubject(s); setRoute('detail'); }} onProfile={() => setRoute('profile')} />;
+  }
+
+  const tokens = appTokens(dark);
+
+  if (isLogin) {
+    return (
+      <div style={{ ...tokens, height: '100vh', width: '100%', position: 'relative', overflow: 'hidden' }}>
+        {screen}
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ ...tokens, height: '100vh', width: '100%', display: 'flex', background: 'var(--bg)', overflow: 'hidden' }}>
+      {/* Desktop sidebar */}
+      <div className="desktop-only" style={{
+        flex: `0 0 ${sidebarOpen ? 260 : 64}px`,
+        transition: 'flex-basis .25s cubic-bezier(.4,0,.2,1)',
+      }}>
+        <Sidebar
+          active={activeNav}
+          onNav={(id) => { setSubId(null); setMeta(null); setRoute(id); }}
+          dark={dark}
+          onToggleDark={() => setDark((v) => !v)}
+          onProfile={() => setRoute('profile')}
+          onLogout={() => setRoute('login')}
+          open={sidebarOpen}
+          onToggle={() => setSidebarOpen((v) => !v)}
+        />
+      </div>
+
+      {/* Main content */}
+      <div style={{
+        flex: 1, minWidth: 0, height: '100vh', display: 'flex', flexDirection: 'column',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{
+          flex: 1, minHeight: 0, display: 'flex', justifyContent: 'center',
+          overflowY: 'hidden',
+        }}>
+          <div style={{
+            width: '100%', maxWidth: isQuiz ? 720 : 720, height: '100%',
+            position: 'relative',
+          }}>
+            {screen}
+          </div>
+        </div>
+
+        {/* Mobile bottom nav */}
+        {showNav && <MobileBottomNav active={activeNav} onNav={(id) => { setSubId(null); setMeta(null); setRoute(id); }} />}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════
+// 17. RENDER
+// ═══════════════════════════════════════════════════
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
