@@ -499,10 +499,123 @@ function OrangeBlob({ style }) {
 }
 
 function LoginScreen({ onEnter }) {
+  const [view, setView] = useState('splash');
+
   const btnStyle = {
     width: '100%', height: 52, border: 'none', cursor: 'pointer', borderRadius: 999,
     fontFamily: 'Inter, sans-serif', fontSize: 16, fontWeight: 600, color: '#fff',
   };
+
+  const inputStyle = {
+    width: '100%', height: 52, border: '1.5px solid #ddd8cf', borderRadius: 14,
+    background: '#fff', color: '#1a1a17', padding: '0 18px',
+    fontFamily: 'Inter, sans-serif', fontSize: 15, fontWeight: 500, outline: 'none',
+    transition: 'border-color .2s, box-shadow .2s',
+    boxShadow: '0 2px 8px -3px rgba(0,0,0,0.06)',
+  };
+
+  const labelStyle = {
+    fontFamily: 'Inter, sans-serif', fontSize: 12.5, fontWeight: 600, color: '#8a877e',
+    letterSpacing: '0.03em', marginBottom: 7, display: 'block',
+  };
+
+  const focusIn = (e) => { e.target.style.borderColor = ORANGE_V; e.target.style.boxShadow = `0 0 0 3px rgba(255,96,0,0.12), 0 2px 8px -3px rgba(0,0,0,0.06)`; };
+  const focusOut = (e) => { e.target.style.borderColor = '#ddd8cf'; e.target.style.boxShadow = '0 2px 8px -3px rgba(0,0,0,0.06)'; };
+
+
+  const backBtn = (goTo = 'splash') => (
+    <button onClick={() => setView(goTo)} style={{
+      width: 42, height: 42, borderRadius: '50%', border: 'none', cursor: 'pointer',
+      background: 'rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      color: '#5a5750', marginBottom: 28, transition: 'background .15s',
+    }}
+      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.1)'}
+      onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
+    >
+      <Ic.back s={20} />
+    </button>
+  );
+
+  const formWrap = (children) => (
+    <div style={{ width: '100%', minHeight: '100vh', background: SCREEN_BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: 400, padding: '40px 24px', animation: 'pyfade .3s ease' }}>
+        {children}
+      </div>
+    </div>
+  );
+
+  const wordmark = (sub) => (
+    <div style={{ textAlign: 'center', marginBottom: 40 }}>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 900, fontStyle: 'italic', fontSize: 40, letterSpacing: '-0.01em', color: '#1a1a17' }}>Pythos</span>
+      <p style={{ margin: '10px 0 0', fontFamily: 'Inter, sans-serif', fontSize: 14.5, color: '#9a978e', fontWeight: 400 }}>{sub}</p>
+    </div>
+  );
+
+  const field = (label, type, placeholder) => (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      <input type={type} placeholder={placeholder} style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
+    </div>
+  );
+
+  // ── FORGOT PASSWORD ──
+  if (view === 'forgot') {
+    return formWrap(<>
+      {backBtn('login')}
+      {wordmark('Recuperar senha')}
+      <p style={{ textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: 14.5, lineHeight: 1.6, color: '#7a776e', marginTop: -24, marginBottom: 32 }}>
+        Digite o <span style={{ fontWeight: 700, color: '#1a1a17' }}>e-mail da sua conta</span> e enviaremos um código de recuperação.
+      </p>
+      <div style={{ marginBottom: 28 }}>
+        {field('E-mail', 'email', 'seu@email.com')}
+      </div>
+      <button onClick={() => setView('login')} style={{ ...btnStyle, background: CARD_BG, boxShadow: `0 8px 28px -8px ${BLUE_V}aa`, marginBottom: 18 }}>Enviar código</button>
+      <p style={{ textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: 13.5, color: '#9a978e' }}>
+        Lembrou?{' '}
+        <button onClick={() => setView('login')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1a1a17', fontFamily: 'var(--font-display)', fontSize: 13.5, fontWeight: 700, fontStyle: 'italic', padding: 0 }}>Entrar</button>
+      </p>
+    </>);
+  }
+
+  // ── LOGIN FORM ──
+  if (view === 'login') {
+    return formWrap(<>
+      {backBtn()}
+      {wordmark('Entre na sua conta')}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18, marginBottom: 28 }}>
+        {field('E-mail', 'email', 'seu@email.com')}
+        {field('Senha', 'password', '••••••••')}
+      </div>
+      <button onClick={onEnter} style={{ ...btnStyle, background: CARD_BG, boxShadow: `0 8px 28px -8px ${BLUE_V}aa`, marginBottom: 18 }}>Entrar</button>
+      <p style={{ textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: 13.5, color: '#9a978e' }}>
+        <button onClick={() => setView('forgot')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1a1a17', fontFamily: 'var(--font-display)', fontSize: 13.5, fontWeight: 700, fontStyle: 'italic', padding: 0 }}>Esqueceu a senha</button>
+        {' '}ou{' '}
+        <button onClick={() => setView('signup')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1a1a17', fontFamily: 'var(--font-display)', fontSize: 13.5, fontWeight: 700, fontStyle: 'italic', padding: 0 }}>Criar conta</button>
+      </p>
+    </>);
+  }
+
+  // ── SIGNUP FORM ──
+  if (view === 'signup') {
+    return formWrap(<>
+      {backBtn()}
+      {wordmark('Crie sua conta gratuita')}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 28 }}>
+        {field('Nome', 'text', 'Seu nome')}
+        {field('E-mail', 'email', 'seu@email.com')}
+        {field('Confirmar e-mail', 'email', 'Confirme seu e-mail')}
+        {field('Senha', 'password', 'Mínimo 8 caracteres')}
+        {field('Confirmar senha', 'password', 'Repita sua senha')}
+      </div>
+      <button onClick={onEnter} style={{ ...btnStyle, background: '#1a1a17', boxShadow: '0 6px 20px -6px rgba(0,0,0,0.35)', marginBottom: 18 }}>Criar conta</button>
+      <p style={{ textAlign: 'center', fontFamily: 'Inter, sans-serif', fontSize: 13.5, color: '#9a978e' }}>
+        Já tem conta?{' '}
+        <button onClick={() => setView('login')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#1a1a17', fontFamily: 'var(--font-display)', fontSize: 13.5, fontWeight: 700, fontStyle: 'italic', padding: 0 }}>Entrar</button>
+      </p>
+    </>);
+  }
+
+  // ── SPLASH (original) ──
   return (
     <div style={{ width: '100%', minHeight: '100vh', background: SCREEN_BG, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="login-layout" style={{ width: '100%', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -525,14 +638,13 @@ function LoginScreen({ onEnter }) {
             </div>
           </div>
           <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <button onClick={onEnter} style={{ ...btnStyle, background: CARD_BG, boxShadow: `0 6px 22px -8px ${BLUE_V}cc` }}>Entrar</button>
-            <button onClick={onEnter} style={{ ...btnStyle, background: '#1a1a1a', boxShadow: '0 4px 16px -6px rgba(0,0,0,0.35)' }}>Criar conta</button>
+            <button onClick={() => setView('login')} style={{ ...btnStyle, background: CARD_BG, boxShadow: `0 6px 22px -8px ${BLUE_V}cc` }}>Entrar</button>
+            <button onClick={() => setView('signup')} style={{ ...btnStyle, background: '#1a1a1a', boxShadow: '0 4px 16px -6px rgba(0,0,0,0.35)' }}>Criar conta</button>
           </div>
         </div>
 
         {/* ── DESKTOP LAYOUT (side-by-side) ── */}
         <div className="desktop-only" style={{ flexDirection: 'row', width: '100%', maxWidth: 920, gap: 56, padding: '40px 32px', alignItems: 'center' }}>
-          {/* Left: Blue card */}
           <div style={{ flex: '0 0 380px', height: 520, borderRadius: 28, overflow: 'hidden', position: 'relative', background: CARD_BG, boxShadow: '0 24px 64px -16px rgba(30,64,255,0.3)' }}>
             <NoiseLayer />
             <OrangeBlob style={{ top: -80, right: -80, width: 260, height: 260 }} />
@@ -548,15 +660,13 @@ function LoginScreen({ onEnter }) {
               </div>
             </div>
           </div>
-
-          {/* Right: Text + Buttons */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minWidth: 0 }}>
             <p style={{ margin: '0 0 36px', fontFamily: 'Inter, sans-serif', fontSize: 17, lineHeight: 1.7, color: '#6b6b63', maxWidth: 360, textAlign: 'center' }}>
               Seu app de estudos no <span style={{ fontWeight: 700, color: '#1a1a17' }}>método espaçado</span>. <span style={{ fontWeight: 600, color: '#3a3a33' }}>Matérias organizadas</span>, <span style={{ fontWeight: 600, color: '#3a3a33' }}>questões direto ao ponto</span> e <span style={{ fontWeight: 700, color: '#1a1a17' }}>progresso que motiva</span>.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 340, width: '100%' }}>
-              <button onClick={onEnter} style={{ ...btnStyle, background: CARD_BG, boxShadow: `0 8px 28px -8px ${BLUE_V}aa` }}>Entrar</button>
-              <button onClick={onEnter} style={{ ...btnStyle, background: '#141414', boxShadow: '0 4px 16px -6px rgba(0,0,0,0.3)' }}>Criar conta</button>
+              <button onClick={() => setView('login')} style={{ ...btnStyle, background: CARD_BG, boxShadow: `0 8px 28px -8px ${BLUE_V}aa` }}>Entrar</button>
+              <button onClick={() => setView('signup')} style={{ ...btnStyle, background: '#141414', boxShadow: '0 4px 16px -6px rgba(0,0,0,0.3)' }}>Criar conta</button>
             </div>
             <p style={{ margin: '24px 0 0', fontFamily: 'Inter, sans-serif', fontSize: 12.5, color: '#a8a89e', maxWidth: 340, textAlign: 'center' }}>
               Ao continuar, você concorda com os <span style={{ textDecoration: 'underline', cursor: 'pointer', color: '#8a887f' }}>Termos de Uso</span>.
@@ -909,22 +1019,28 @@ function CalcKeypad({ val, onChange, onDone }) {
     letterSpacing: k.length > 2 ? '-0.02em' : 'normal',
   });
 
-  const tabBtn = (id, label) => (
-    <button onClick={() => setTab(id)} style={{
-      flex: 1, height: 32, border: 'none', cursor: 'pointer', borderRadius: 8,
-      fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 700, letterSpacing: '0.04em',
-      background: tab === id ? 'color-mix(in srgb, var(--accent) 20%, var(--surface))' : 'transparent',
-      color: tab === id ? 'var(--accent)' : 'var(--text-muted)',
-      transition: 'background .15s, color .15s',
-    }}>{label}</button>
-  );
-
   return (
     <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, zIndex: 20, background: 'var(--bg)', borderTop: '1px solid var(--border)', padding: '8px 12px 18px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-        <div style={{ display: 'flex', gap: 4 }}>
-          {tabBtn('num', '123')}
-          {tabBtn('mat', 'f(x)')}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        {/* Segmented control */}
+        <div style={{
+          display: 'flex', padding: 3, borderRadius: 10,
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          gap: 2,
+        }}>
+          {[['num','123'],['mat','f(x)']].map(([id, label]) => (
+            <button key={id} onClick={() => setTab(id)} style={{
+              width: 52, height: 30, border: 'none', cursor: 'pointer', borderRadius: 8,
+              fontFamily: 'Inter, sans-serif', fontSize: 12.5, fontWeight: 700,
+              background: tab === id
+                ? 'color-mix(in srgb, var(--accent) 22%, var(--surface-2))'
+                : 'transparent',
+              color: tab === id ? 'var(--accent)' : 'var(--text-muted)',
+              boxShadow: tab === id ? '0 1px 4px rgba(30,64,255,0.15)' : 'none',
+              transition: 'all .2s cubic-bezier(.4,0,.2,1)',
+              position: 'relative',
+            }}>{label}</button>
+          ))}
         </div>
         <button onClick={onDone} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--accent)', fontFamily: 'Inter', fontSize: 13.5, fontWeight: 700, padding: 0 }}>Pronto ✓</button>
       </div>
